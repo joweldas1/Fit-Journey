@@ -1,0 +1,161 @@
+import { Trash2, Plus, Sparkles, Utensils } from 'lucide-react';
+
+export default function DailyCalorieView({ 
+  profile, 
+  foods = [], 
+  onDeleteFood, 
+  onOpenAddFood,
+  lang = 'bn' 
+}) {
+  const targetCalories = profile?.dailyCalorieTarget || 2400;
+  const consumedCalories = foods.reduce((acc, f) => acc + (f.calories || 0), 0);
+  const remaining = Math.max(targetCalories - consumedCalories, 0);
+
+  // Consumed macros
+  const consumedProtein = foods.reduce((acc, f) => acc + (f.protein || 0), 0);
+  const consumedCarbs = foods.reduce((acc, f) => acc + (f.carbs || 0), 0);
+  const consumedFat = foods.reduce((acc, f) => acc + (f.fat || 0), 0);
+
+  const targetProtein = profile?.macros?.protein || 88;
+  const targetCarbs = profile?.macros?.carbs || 350;
+  const targetFat = profile?.macros?.fat || 70;
+
+  const mealSections = [
+    { id: 'breakfast', title: lang === 'bn' ? '🌅 ব্রেকফাস্ট' : '🌅 Breakfast' },
+    { id: 'lunch', title: lang === 'bn' ? '☀️ লাঞ্চ' : '☀️ Lunch' },
+    { id: 'snacks', title: lang === 'bn' ? '☕ ইভনিং স্ন্যাকস' : '☕ Evening Snacks' },
+    { id: 'dinner', title: lang === 'bn' ? '🌙 ডিনার' : '🌙 Dinner' },
+  ];
+
+  return (
+    <div className="space-y-4 animate-in fade-in duration-300">
+      
+      {/* Top Target Overview Card */}
+      <div className="bg-white dark:bg-darkCard p-5 rounded-[28px] border border-slate-100 dark:border-slate-800 shadow-sm">
+        <div className="flex justify-between items-center mb-3">
+          <div>
+            <h2 className="text-base font-semibold text-slate-900 dark:text-white">
+              {lang === 'bn' ? 'আজকের ক্যালোরি সারসংক্ষেপ' : 'Today’s Calorie Summary'}
+            </h2>
+            <p className="text-xs text-slate-400">
+              {lang === 'bn' ? `টার্গেট: ${targetCalories} kcal` : `Target: ${targetCalories} kcal`}
+            </p>
+          </div>
+          <button
+            onClick={onOpenAddFood}
+            className="p-2.5 rounded-2xl bg-brandOrange text-white text-xs font-medium flex items-center gap-1 shadow-md shadow-orange-500/20 active:scale-95 transition"
+          >
+            <Plus className="w-4 h-4" />
+            <span>{lang === 'bn' ? 'খাবার যোগ' : 'Add Food'}</span>
+          </button>
+        </div>
+
+        {/* Live Calorie Split */}
+        <div className="grid grid-cols-2 gap-3 p-4 rounded-2xl bg-slate-50 dark:bg-darkSurface border border-slate-100 dark:border-slate-800/80 mb-4 text-center">
+          <div>
+            <span className="text-[10px] text-slate-400 uppercase font-semibold">
+              {lang === 'bn' ? 'খাওয়া হয়েছে' : 'Consumed'}
+            </span>
+            <p className="text-2xl font-bold text-brandOrange">{consumedCalories} <span className="text-xs font-normal">kcal</span></p>
+          </div>
+          <div className="border-l border-slate-200 dark:border-slate-800">
+            <span className="text-[10px] text-slate-400 uppercase font-semibold">
+              {lang === 'bn' ? 'টার্গেট বাকি' : 'Remaining'}
+            </span>
+            <p className="text-2xl font-bold text-slate-700 dark:text-slate-300">{remaining} <span className="text-xs font-normal">kcal</span></p>
+          </div>
+        </div>
+
+        {/* Macro Progress Bars (matching Image 1) */}
+        <div className="space-y-2.5">
+          {/* Protein */}
+          <div>
+            <div className="flex justify-between text-xs font-medium mb-1">
+              <span className="text-macroProtein font-semibold">{lang === 'bn' ? 'প্রোটিন' : 'Protein'}</span>
+              <span className="text-slate-400">{consumedProtein}g / {targetProtein}g</span>
+            </div>
+            <div className="w-full h-2 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
+              <div 
+                className="h-full rounded-full bg-macroProtein transition-all duration-500" 
+                style={{ width: `${Math.min((consumedProtein / targetProtein) * 100, 100)}%` }}
+              />
+            </div>
+          </div>
+
+          {/* Carbs */}
+          <div>
+            <div className="flex justify-between text-xs font-medium mb-1">
+              <span className="text-macroCarb font-semibold">{lang === 'bn' ? 'কার্বস' : 'Carbs'}</span>
+              <span className="text-slate-400">{consumedCarbs}g / {targetCarbs}g</span>
+            </div>
+            <div className="w-full h-2 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
+              <div 
+                className="h-full rounded-full bg-macroCarb transition-all duration-500" 
+                style={{ width: `${Math.min((consumedCarbs / targetCarbs) * 100, 100)}%` }}
+              />
+            </div>
+          </div>
+
+          {/* Fat */}
+          <div>
+            <div className="flex justify-between text-xs font-medium mb-1">
+              <span className="text-macroFat font-semibold">{lang === 'bn' ? 'ফ্যাট' : 'Fat'}</span>
+              <span className="text-slate-400">{consumedFat}g / {targetFat}g</span>
+            </div>
+            <div className="w-full h-2 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
+              <div 
+                className="h-full rounded-full bg-macroFat transition-all duration-500" 
+                style={{ width: `${Math.min((consumedFat / targetFat) * 100, 100)}%` }}
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Timeline Food List */}
+      <div className="space-y-3">
+        {mealSections.map((sec) => {
+          const items = foods.filter(f => f.mealType === sec.id);
+          const mealTotal = items.reduce((acc, i) => acc + (i.calories || 0), 0);
+
+          return (
+            <div key={sec.id} className="bg-white dark:bg-darkCard p-4 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm">
+              <div className="flex justify-between items-center mb-2 pb-1 border-b border-slate-100 dark:border-slate-800/80">
+                <span className="text-xs font-bold text-slate-800 dark:text-slate-200">{sec.title}</span>
+                <span className="text-xs font-semibold text-brandOrange">{mealTotal} kcal</span>
+              </div>
+
+              {items.length === 0 ? (
+                <p className="text-[11px] text-slate-400 py-1 italic">
+                  {lang === 'bn' ? 'এই সময়ে এখনো কোনো খাবার যোগ করা হয়নি' : 'No food logged for this meal'}
+                </p>
+              ) : (
+                <div className="space-y-2">
+                  {items.map((item, idx) => (
+                    <div key={idx} className="flex justify-between items-center p-2 rounded-xl bg-slate-50 dark:bg-darkSurface border border-slate-100 dark:border-slate-800">
+                      <div>
+                        <h4 className="text-xs font-semibold text-slate-900 dark:text-white">{item.name}</h4>
+                        <p className="text-[10px] text-slate-400">{item.portion} • P: {item.protein}g | C: {item.carbs}g | F: {item.fat}g</p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-bold text-slate-700 dark:text-slate-200">+{item.calories}</span>
+                        <button
+                          onClick={() => onDeleteFood(item.id || idx)}
+                          className="p-1 rounded-lg text-slate-400 hover:text-rose-500 transition"
+                          title="Delete"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+
+    </div>
+  );
+}
