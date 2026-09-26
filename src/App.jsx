@@ -180,7 +180,7 @@ export default function App() {
         lang={lang}
       />
 
-      {/* 1. STICKY HEADER (Full width at top) */}
+      {/* STICKY TOP HEADER */}
       <Header 
         profile={profile}
         darkMode={darkMode}
@@ -192,55 +192,58 @@ export default function App() {
         setActiveTab={setActiveTab}
       />
 
-      {/* 2. FULL SCREEN EDGE-TO-EDGE MOBILE VIEW CONTAINER */}
-      <main className="w-full max-w-md mx-auto min-h-[calc(100vh-65px)] flex flex-col justify-between px-4 sm:px-5 pb-6 pt-3">
+      {/* FULL SCREEN EDGE-TO-EDGE VIEW CONTAINER */}
+      <main className="w-full max-w-md mx-auto min-h-[calc(100vh-65px)] flex flex-col justify-between px-4 sm:px-6 pt-4 pb-6">
         
-        {/* Tab 1: Journey Dashboard */}
+        {/* Tab 1: Journey Dashboard (No Enclosing Box / Pure Edge-to-Edge) */}
         {activeTab === 'journey' && (
-          <div className="space-y-4 my-auto animate-in fade-in duration-300">
+          <div className="flex-1 flex flex-col justify-between py-2 animate-in fade-in duration-300">
             
-            {/* Calorie Gauge Card */}
-            <div className="bg-white dark:bg-darkCard p-6 rounded-[32px] border border-slate-100 dark:border-slate-800 shadow-sm">
+            {/* 1. SEAMLESS AMBIENT GAUGE (সরাসরি ব্যাকগ্রাউন্ডের ওপর ওপেন ভিউ) */}
+            <div className="flex-1 flex flex-col items-center justify-center py-6">
               <CalorieGauge consumed={consumedCalories} target={targetCalories} lang={lang} />
+            </div>
 
-              {/* Action Buttons: Fixed + + Double Plus & Added Orange-Amber Gradient */}
-              <div className="grid grid-cols-2 gap-3 mt-6">
+            {/* 2. BOTTOM CONTROLS: ACTION BUTTONS + STATUS DOCK */}
+            <div className="space-y-4 w-full">
+              
+              {/* Action Buttons */}
+              <div className="grid grid-cols-2 gap-3.5 w-full">
                 <button 
                   type="button"
                   onClick={() => setIsAddFoodOpen(true)}
-                  className="flex items-center justify-center gap-2 py-3.5 px-4 rounded-2xl bg-gradient-to-r from-brandOrange via-orange-500 to-amber-500 hover:opacity-95 text-white font-semibold text-xs shadow-lg shadow-orange-500/25 active:scale-95 transition-all"
+                  className="flex items-center justify-center gap-2 py-4 px-4 rounded-2xl bg-gradient-to-r from-brandOrange via-orange-500 to-amber-500 hover:opacity-95 text-white font-bold text-sm shadow-xl shadow-orange-500/25 active:scale-95 transition-all"
                 >
-                  <Plus className="w-4 h-4 stroke-[2.5]" />
+                  <Plus className="w-4 h-4 stroke-[3]" />
                   <span>{txt.addFood}</span>
                 </button>
                 
                 <button 
                   type="button"
                   onClick={() => setIsExerciseOpen(true)}
-                  className="flex items-center justify-center gap-2 py-3.5 px-4 rounded-2xl bg-slate-100 dark:bg-darkSurface hover:bg-slate-200 dark:hover:bg-slate-800/80 text-slate-700 dark:text-slate-200 border border-slate-200/80 dark:border-slate-800 font-semibold text-xs active:scale-95 transition-all"
+                  className="flex items-center justify-center gap-2 py-4 px-4 rounded-2xl bg-white/5 dark:bg-darkCard/90 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-800 dark:text-slate-200 border border-slate-200/80 dark:border-slate-800 font-semibold text-sm shadow-sm active:scale-95 transition-all"
                 >
-                  <Dumbbell className="w-4 h-4 text-teal-500" />
+                  <Dumbbell className="w-4 h-4 text-teal-400" />
                   <span>{txt.logExercise}</span>
                 </button>
               </div>
-            </div>
 
-            {/* Quick Summary Dock Bar with 100% Language Sync */}
-            <div className="bg-white dark:bg-darkCard p-4 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm flex justify-around text-center text-xs">
-              <div>
-                <span className="text-[10px] text-slate-400 uppercase font-semibold">{txt.goal}</span>
-                <p className="font-bold text-slate-900 dark:text-white mt-0.5">{profile ? `${profile.currentWeight} ➔ ${profile.targetWeight} kg` : '--'}</p>
+              {/* Bottom Native Status Dock */}
+              <div className="w-full grid grid-cols-3 divide-x divide-slate-200/70 dark:divide-slate-800/80 bg-white/60 dark:bg-darkCard/80 border border-slate-200/80 dark:border-slate-800/80 rounded-2xl py-3.5 px-2 shadow-sm backdrop-blur-md text-center text-xs">
+                <div>
+                  <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider">{txt.goal}</span>
+                  <p className="font-extrabold text-slate-900 dark:text-white mt-1">{profile ? `${profile.currentWeight} ➔ ${profile.targetWeight} kg` : '--'}</p>
+                </div>
+                <div>
+                  <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider">{txt.burned}</span>
+                  <p className="font-extrabold text-teal-500 dark:text-teal-400 mt-1">-{burnedCalories} kcal</p>
+                </div>
+                <div>
+                  <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider">{txt.mealsLogged}</span>
+                  <p className="font-extrabold text-brandOrange mt-1">{foods.length} {txt.items}</p>
+                </div>
               </div>
-              <div className="border-l border-slate-100 dark:border-slate-800" />
-              <div>
-                <span className="text-[10px] text-slate-400 uppercase font-semibold">{txt.burned}</span>
-                <p className="font-bold text-teal-500 mt-0.5">-{burnedCalories} kcal</p>
-              </div>
-              <div className="border-l border-slate-100 dark:border-slate-800" />
-              <div>
-                <span className="text-[10px] text-slate-400 uppercase font-semibold">{txt.mealsLogged}</span>
-                <p className="font-bold text-brandOrange mt-0.5">{foods.length} {txt.items}</p>
-              </div>
+
             </div>
 
           </div>
@@ -265,7 +268,6 @@ export default function App() {
           />
         )}
 
-        <div className="h-2" />
       </main>
     </div>
   );

@@ -5,14 +5,19 @@ export default function CalorieGauge({ consumed = 0, target = 2400, lang = 'bn' 
   const percentage = Math.min(Math.round((consumed / target) * 100), 100);
   const txt = t[lang] || t.bn;
 
-  const radius = 80;
+  // Arc calculation (Radius: 90, Center: 110, 110)
+  const radius = 90;
   const strokeWidth = 14;
-  const circumference = Math.PI * radius;
+  const circumference = Math.PI * radius; // Half-circle circumference (~282.74)
   const strokeDashoffset = circumference - (percentage / 100) * circumference;
 
   return (
-    <div className="relative flex flex-col items-center justify-center pt-2 pb-1">
-      <svg width="220" height="125" viewBox="0 0 200 115" className="overflow-visible">
+    <div className="relative w-64 h-36 flex items-end justify-center mx-auto my-2">
+      {/* SVG Semi-Circle Arc */}
+      <svg 
+        viewBox="0 0 220 125" 
+        className="w-full h-full overflow-visible"
+      >
         <defs>
           <linearGradient id="gaugeGradient" x1="0%" y1="0%" x2="100%" y2="0%">
             <stop offset="0%" stopColor="#FF6B4A" />
@@ -21,8 +26,9 @@ export default function CalorieGauge({ consumed = 0, target = 2400, lang = 'bn' 
           </linearGradient>
         </defs>
 
+        {/* Background Track Arc */}
         <path
-          d="M 20 100 A 80 80 0 0 1 180 100"
+          d="M 20 110 A 90 90 0 0 1 200 110"
           fill="none"
           stroke="currentColor"
           strokeWidth={strokeWidth}
@@ -30,8 +36,9 @@ export default function CalorieGauge({ consumed = 0, target = 2400, lang = 'bn' 
           className="text-slate-200/80 dark:text-slate-800"
         />
 
+        {/* Dynamic Progress Arc */}
         <path
-          d="M 20 100 A 80 80 0 0 1 180 100"
+          d="M 20 110 A 90 90 0 0 1 200 110"
           fill="none"
           stroke="url(#gaugeGradient)"
           strokeWidth={strokeWidth}
@@ -42,19 +49,20 @@ export default function CalorieGauge({ consumed = 0, target = 2400, lang = 'bn' 
         />
       </svg>
 
-      <div className="absolute top-14 flex flex-col items-center text-center">
-        <span className="text-[11px] font-medium text-slate-500 dark:text-slate-400 tracking-wide">
+      {/* Proportional Centered Text (No overlap with arc) */}
+      <div className="absolute inset-0 flex flex-col items-center justify-end pb-1 text-center pointer-events-none">
+        <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 tracking-wider uppercase mb-1">
           {txt.dailyProgressTitle}
         </span>
-        <div className="flex items-baseline gap-1 mt-0.5">
-          <span className="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">
+        <div className="flex items-baseline gap-1">
+          <span className="text-3xl font-black tracking-tight text-slate-900 dark:text-white">
             {consumed}
           </span>
           <span className="text-xs font-semibold text-slate-400">
             / {target} kcal
           </span>
         </div>
-        <span className="text-[10px] font-bold text-brandOrange mt-0.5">
+        <span className="text-xs font-extrabold text-brandOrange mt-1">
           {percentage}% {txt.complete}
         </span>
       </div>
