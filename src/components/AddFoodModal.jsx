@@ -1,12 +1,13 @@
 import { useState, useEffect, useRef } from 'react';
-import { X, Sparkles, Loader2, Utensils, Check, ArrowRight, ListPlus, Bot, Database } from 'lucide-react';
+import { X, Sparkles, Loader2, Utensils, Check, ArrowRight, ListPlus, Activity, Database, Flame } from 'lucide-react';
 import { toast } from 'sonner';
 import { analyzeFoodWithAI } from '../utils/gemini';
 import FOOD_MASTER_DB from '../utils/food';
 
-const QUICK_FOODS = [
-  { label: "+২টি কলা", text: "পাকা কলা" },
-  { label: "+১ বাটি চিড়া", text: "চিড়া" },
+// Default Fallback jodi user notun hoy ba kono history na thake
+const DEFAULT_QUICK_FOODS = [
+  { label: "কলা", text: "পাকা কলা" },
+  { label: "বাটি চিড়া", text: "চিড়া" },
   { label: "+ছোলা ও চীনাবাদাম", text: "চিনাবাদাম" },
   { label: "+সিদ্ধ ডিম", text: "ডিম কারি" },
   { label: "+ভাত ও ডাল", text: "ডাল ভাত" },
@@ -22,6 +23,41 @@ export default function AddFoodModal({ isOpen, onClose, onAddFood, lang = 'bn' }
   const [suggestions, setSuggestions] = useState([]);
   const [showDropdown, setShowDropdown] = useState(false);
   const dropdownRef = useRef(null);
+
+  // Dynamic Frequent Foods State
+  const [quickFoods, setQuickFoods] = useState(DEFAULT_QUICK_FOODS);
+  const [hasFrequentHistory, setHasFrequentHistory] = useState(false);
+
+  // Load User's Most Logged Foods from localStorage
+  useEffect(() => {
+    if (isOpen) {
+      try {
+        const freqMap = JSON.parse(localStorage.getItem('fit_food_frequency') || '{}');
+        const sortedFrequent = Object.entries(freqMap)
+          .sort((a, b) => b[1] - a[1])
+          .slice(0, 5)
+          .map(([name]) => ({
+            label: `+${name}`,
+            text: name,
+            isUserFrequent: true
+          }));
+
+        if (sortedFrequent.length > 0) {
+          setHasFrequentHistory(true);
+          // 5-tar kom hole baki slot gulo default theke fillup hobe
+          const remaining = DEFAULT_QUICK_FOODS.filter(
+            def => !sortedFrequent.some(s => s.text === def.text)
+          );
+          setQuickFoods([...sortedFrequent, ...remaining].slice(0, 5));
+        } else {
+          setHasFrequentHistory(false);
+          setQuickFoods(DEFAULT_QUICK_FOODS);
+        }
+      } catch (e) {
+        setQuickFoods(DEFAULT_QUICK_FOODS);
+      }
+    }
+  }, [isOpen]);
 
   useEffect(() => {
     const currentHour = new Date().getHours();
@@ -89,7 +125,7 @@ export default function AddFoodModal({ isOpen, onClose, onAddFood, lang = 'bn' }
         setRelevantItems(res.items);
       }
     } catch {
-      toast.error('হিসাব করতে সমস্যা হয়েছে, অনুগ্রহ করে ড্রপডাউন থেকে সিলেক্ট করুন');
+      toast.error(lang === 'bn' ? 'বিশ্লেষণ করা যায়নি, ড্রপডাউন থেকে নির্বাচন করুন' : 'Analysis failed, select from list');
     } finally {
       setLoading(false);
     }
@@ -103,21 +139,31 @@ export default function AddFoodModal({ isOpen, onClose, onAddFood, lang = 'bn' }
       carbs: item.carbs || item.c,
       fat: item.fat || item.f,
       portion: item.portion || item.unit,
-      aiTip: lang === 'bn' 
-        ? "আমাদের ৭০০+ ফুড ডাটাবেস থেকে ভেরিফায়েড পুষ্টিমান লোড হয়েছে।" 
-        : "Verified nutrition loaded from 700+ database.",
       source: 'local_database'
     });
     setRelevantItems([]);
   };
 
+  // Khabar add korar shathe shathe tar frequency increment kora
   const handleConfirmAdd = () => {
     if (!aiPreview) return;
+    
+    // User food usage counter update
+    try {
+      const freqMap = JSON.parse(localStorage.getItem('fit_food_frequency') || '{}');
+      const baseFoodName = aiPreview.name.trim();
+      freqMap[baseFoodName] = (freqMap[baseFoodName] || 0) + 1;
+      localStorage.setItem('fit_food_frequency', JSON.stringify(freqMap));
+    } catch (e) {
+      console.warn("Could not save frequency", e);
+    }
+
     onAddFood({
       ...aiPreview,
       mealType: selectedMeal,
       timestamp: new Date().toISOString()
     });
+    
     toast.success(`${aiPreview.name} যোগ করা হয়েছে!`);
     onClose();
     setFoodQuery('');
@@ -213,21 +259,36 @@ export default function AddFoodModal({ isOpen, onClose, onAddFood, lang = 'bn' }
           )}
         </div>
 
-        {/* Quick Badges */}
-        <div className="flex flex-wrap gap-1.5 mb-5">
-          {QUICK_FOODS.map((q, idx) => (
-            <button
-              key={idx}
-              type="button"
-              onClick={() => {
-                setFoodQuery(q.text);
-                handleAIAnalyze(q.text);
-              }}
-              className="text-[11px] px-2.5 py-1.5 rounded-full bg-slate-100 dark:bg-slate-800/60 hover:text-brandOrange text-slate-600 dark:text-slate-300 border border-slate-200/60 dark:border-slate-700/60 transition"
-            >
-              {q.label}
-            </button>
-          ))}
+        {/* Dynamic Frequent / Most Used Food Badges */}
+        <div className="mb-5">
+          <div className="flex items-center gap-1 text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-2">
+            <Flame className="w-3 h-3 text-brandOrange" />
+            <span>
+              {hasFrequentHistory 
+                ? (lang === 'bn' ? 'আপনার সচরাচর খাওয়া খাবার (Frequent):' : 'Your Frequent Foods:')
+                : (lang === 'bn' ? 'দ্রুত নির্বাচনের পরামর্শ:' : 'Quick Suggestions:')}
+            </span>
+          </div>
+          
+          <div className="flex flex-wrap gap-1.5">
+            {quickFoods.map((q, idx) => (
+              <button
+                key={idx}
+                type="button"
+                onClick={() => {
+                  setFoodQuery(q.text);
+                  handleAIAnalyze(q.text);
+                }}
+                className={`text-[11px] px-2.5 py-1.5 rounded-full border transition flex items-center gap-1 ${
+                  q.isUserFrequent 
+                    ? 'bg-orange-500/10 text-brandOrange border-orange-500/30 hover:bg-orange-500/20 font-medium'
+                    : 'bg-slate-100 dark:bg-slate-800/60 hover:text-brandOrange text-slate-600 dark:text-slate-300 border-slate-200/60 dark:border-slate-700/60'
+                }`}
+              >
+                {q.label}
+              </button>
+            ))}
+          </div>
         </div>
 
         {/* Relevant Food Matches */}
@@ -285,20 +346,21 @@ export default function AddFoodModal({ isOpen, onClose, onAddFood, lang = 'bn' }
                 <p className="text-xs font-bold text-amber-400">{aiPreview.fat}g</p>
               </div>
             </div>
-{/* Clean Single Line Source Badge */}
-<div className="mt-3.5 px-3 py-2 rounded-xl bg-orange-500/10 border border-orange-500/20 text-[11px] font-medium text-brandOrange flex items-center gap-2">
-  {aiPreview.source === 'live_analyzed' ? (
-    <>
-      <Activity className="w-3.5 h-3.5 flex-shrink-0 text-brandOrange" />
-      <span>{lang === 'bn' ? 'লাইভ পুষ্টি বিশ্লেষণ (Live Analyzed Nutrition Value)' : 'Live Analyzed Nutrition Value'}</span>
-    </>
-  ) : (
-    <>
-      <Database className="w-3.5 h-3.5 flex-shrink-0 text-brandOrange" />
-      <span>{lang === 'bn' ? 'ভেরিফায়েড পুষ্টি ডাটাবেস থেকে প্রাপ্ত' : 'Verified Food Database Record'}</span>
-    </>
-  )}
-</div>
+
+            {/* Clean Single Line Source Badge */}
+            <div className="mt-3.5 px-3 py-2 rounded-xl bg-orange-500/10 border border-orange-500/20 text-[11px] font-medium text-brandOrange flex items-center gap-2">
+              {aiPreview.source === 'live_analyzed' ? (
+                <>
+                  <Activity className="w-3.5 h-3.5 flex-shrink-0 text-brandOrange" />
+                  <span>{lang === 'bn' ? 'লাইভ পুষ্টি বিশ্লেষণ (Live Analyzed Nutrition Value)' : 'Live Analyzed Nutrition Value'}</span>
+                </>
+              ) : (
+                <>
+                  <Database className="w-3.5 h-3.5 flex-shrink-0 text-brandOrange" />
+                  <span>{lang === 'bn' ? 'ভেরিফায়েড পুষ্টি ডাটাবেস থেকে প্রাপ্ত' : 'Verified Food Database Record'}</span>
+                </>
+              )}
+            </div>
 
             {/* Confirm Button */}
             <button

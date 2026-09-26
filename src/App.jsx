@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Toaster, toast } from 'sonner';
-import { Dumbbell, AlertTriangle, Timer, Plus } from 'lucide-react';
+import { Dumbbell, AlertTriangle, Timer, Plus, Bell, BellRing } from 'lucide-react';
 import Header from './components/Header';
 import OnboardingModal from './components/OnboardingModal';
 import CalorieGauge from './components/CalorieGauge';
@@ -9,6 +9,7 @@ import LogExerciseModal from './components/LogExerciseModal';
 import DailyCalorieView from './components/DailyCalorieView';
 import GlobalCalendarView from './components/GlobalCalendarView';
 import { t } from './utils/translations';
+import { requestNotificationPermission, checkNotificationPermission, sendCalorieNotification } from './utils/notifier';
 
 export default function App() {
   const [darkMode, setDarkMode] = useState(true);
@@ -19,6 +20,7 @@ export default function App() {
 
   const [isAddFoodOpen, setIsAddFoodOpen] = useState(false);
   const [isExerciseOpen, setIsExerciseOpen] = useState(false);
+  const [isNotifActive, setIsNotifActive] = useState(false);
 
   const todayKey = new Date().toISOString().split('T')[0];
   const [foods, setFoods] = useState(() => {
@@ -34,6 +36,7 @@ export default function App() {
   const [showResetCountdown, setShowResetCountdown] = useState(false);
   const [timeLeft, setTimeLeft] = useState(120);
 
+  // Sync profile from localStorage & check notification status
   useEffect(() => {
     const saved = localStorage.getItem('fit_profile');
     if (saved) {
@@ -43,8 +46,10 @@ export default function App() {
     } else {
       setShowOnboarding(true);
     }
+    setIsNotifActive(checkNotificationPermission());
   }, []);
 
+  // Theme Sync
   useEffect(() => {
     if (darkMode) {
       document.documentElement.classList.add('dark');
@@ -53,6 +58,7 @@ export default function App() {
     }
   }, [darkMode]);
 
+  // Persist Foods & Exercises
   useEffect(() => {
     localStorage.setItem(`fit_foods_${todayKey}`, JSON.stringify(foods));
   }, [foods, todayKey]);
@@ -61,6 +67,65 @@ export default function App() {
     localStorage.setItem(`fit_exercises_${todayKey}`, JSON.stringify(exercises));
   }, [exercises, todayKey]);
 
+  // -------------------------------------------------------------
+  // HOURLY NOTIFICATION SYSTEM (CLIENT LANGUAGE BINDING)
+  // -------------------------------------------------------------
+  const foodsRef = useRef(foods);
+  const profileRef = useRef(profile);
+  const langRef = useRef(lang);
+
+  useEffect(() => {
+    foodsRef.current = foods;
+    profileRef.current = profile;
+    langRef.current = lang; // Client bhasha bodlale instantly update hobe
+  }, [foods, profile, lang]);
+
+  useEffect(() => {
+    const checkAndNotify = () => {
+      const currentHour = new Date().getHours();
+      const lastHour = localStorage.getItem('fit_last_notified_hour');
+
+      if (lastHour !== String(currentHour)) {
+        const curTarget = profileRef.current?.dailyCalorieTarget || 2897;
+        const curConsumed = foodsRef.current.reduce((acc, f) => acc + (f.calories || 0), 0);
+
+        sendCalorieNotification({
+          consumed: curConsumed,
+          target: curTarget,
+          lang: langRef.current // Realtime client language pass hocche
+        });
+
+        localStorage.setItem('fit_last_notified_hour', String(currentHour));
+      }
+    };
+
+    checkAndNotify();
+    const interval = setInterval(checkAndNotify, 60 * 1000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const handleToggleNotification = async () => {
+    const granted = await requestNotificationPermission();
+    if (granted) {
+      setIsNotifActive(true);
+      toast.success(lang === 'bn' ? 'ঘণ্টার নোটিফিকেশন চালু হয়েছে!' : 'Hourly notifications enabled!');
+      
+      const curTarget = profile?.dailyCalorieTarget || 2897;
+      const curConsumed = foods.reduce((acc, f) => acc + (f.calories || 0), 0);
+      
+      // Instant test push matching chosen language
+      sendCalorieNotification({
+        consumed: curConsumed,
+        target: curTarget,
+        lang
+      });
+    } else {
+      setIsNotifActive(false);
+      toast.error(lang === 'bn' ? 'নোটিফিকেশন পারমিশন দেওয়া হয়নি' : 'Notification permission was denied');
+    }
+  };
+
+  // 2 Minutes Reset Countdown Timer
   useEffect(() => {
     let timerId;
     if (showResetCountdown && timeLeft > 0) {
@@ -102,7 +167,7 @@ export default function App() {
 
   const txt = t[lang] || t.bn;
 
-  const targetCalories = profile?.dailyCalorieTarget || 2400;
+  const targetCalories = profile?.dailyCalorieTarget || 2897;
   const consumedCalories = foods.reduce((acc, f) => acc + (f.calories || 0), 0);
   const burnedCalories = exercises.reduce((acc, e) => acc + (e.caloriesBurned || 0), 0);
 
@@ -150,7 +215,7 @@ export default function App() {
         </div>
       )}
 
-      {/* Onboarding Modal */}
+      {/* Onboarding Wizard */}
       {showOnboarding && (
         <OnboardingModal 
           darkMode={darkMode}
@@ -180,7 +245,7 @@ export default function App() {
         lang={lang}
       />
 
-      {/* STICKY TOP HEADER */}
+      {/* Sticky Header */}
       <Header 
         profile={profile}
         darkMode={darkMode}
@@ -192,22 +257,49 @@ export default function App() {
         setActiveTab={setActiveTab}
       />
 
-      {/* FULL SCREEN EDGE-TO-EDGE VIEW CONTAINER */}
-      <main className="w-full max-w-md mx-auto min-h-[calc(100vh-65px)] flex flex-col justify-between px-4 sm:px-6 pt-4 pb-6">
+      {/* Full-Screen Edge-to-Edge Container */}
+      <main className="w-full max-w-md mx-auto min-h-[calc(100vh-65px)] flex flex-col justify-between px-4 sm:px-6 pt-3 pb-6">
         
-        {/* Tab 1: Journey Dashboard (No Enclosing Box / Pure Edge-to-Edge) */}
+        {/* Tab 1: Dashboard */}
         {activeTab === 'journey' && (
           <div className="flex-1 flex flex-col justify-between py-2 animate-in fade-in duration-300">
             
-            {/* 1. SEAMLESS AMBIENT GAUGE (সরাসরি ব্যাকগ্রাউন্ডের ওপর ওপেন ভিউ) */}
-            <div className="flex-1 flex flex-col items-center justify-center py-6">
+            {/* Gauge Section */}
+            <div className="flex-1 flex flex-col items-center justify-center py-4">
               <CalorieGauge consumed={consumedCalories} target={targetCalories} lang={lang} />
+              
+              {/* Sleek Notification Status Pill (ON/OFF Design) */}
+              <div className="mt-3">
+                <button
+                  type="button"
+                  onClick={handleToggleNotification}
+                  className={`inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-medium border transition-all active:scale-95 shadow-sm ${
+                    isNotifActive
+                      ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/30 dark:bg-emerald-500/15'
+                      : 'bg-white/80 dark:bg-slate-800/80 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700/80 hover:border-brandOrange/40'
+                  }`}
+                >
+                  {isNotifActive ? (
+                    <>
+                      <span className="relative flex h-2 w-2">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                        <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                      </span>
+                      <BellRing className="w-3.5 h-3.5 text-emerald-500" />
+                      <span>{lang === 'bn' ? 'ঘণ্টার নোটিফিকেশন চালু আছে' : 'Hourly Alerts Active'}</span>
+                    </>
+                  ) : (
+                    <>
+                      <Bell className="w-3.5 h-3.5 text-brandOrange" />
+                      <span>{lang === 'bn' ? 'ঘণ্টার নোটিফিকেশন চালু করুন' : 'Enable Hourly Alerts'}</span>
+                    </>
+                  )}
+                </button>
+              </div>
             </div>
 
-            {/* 2. BOTTOM CONTROLS: ACTION BUTTONS + STATUS DOCK */}
+            {/* Bottom Controls */}
             <div className="space-y-4 w-full">
-              
-              {/* Action Buttons */}
               <div className="grid grid-cols-2 gap-3.5 w-full">
                 <button 
                   type="button"
@@ -228,7 +320,7 @@ export default function App() {
                 </button>
               </div>
 
-              {/* Bottom Native Status Dock */}
+              {/* Status Dock */}
               <div className="w-full grid grid-cols-3 divide-x divide-slate-200/70 dark:divide-slate-800/80 bg-white/60 dark:bg-darkCard/80 border border-slate-200/80 dark:border-slate-800/80 rounded-2xl py-3.5 px-2 shadow-sm backdrop-blur-md text-center text-xs">
                 <div>
                   <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider">{txt.goal}</span>
@@ -249,7 +341,7 @@ export default function App() {
           </div>
         )}
 
-        {/* Tab 2: Daily Calorie Target Tab */}
+        {/* Tab 2: Calorie Target */}
         {activeTab === 'target' && profile && (
           <DailyCalorieView 
             profile={profile}
@@ -260,7 +352,7 @@ export default function App() {
           />
         )}
 
-        {/* Tab 3: Global Calendar & Weight Analytics Tab */}
+        {/* Tab 3: Calendar */}
         {activeTab === 'analytics' && (
           <GlobalCalendarView 
             profile={profile}

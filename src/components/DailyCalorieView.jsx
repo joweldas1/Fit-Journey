@@ -1,4 +1,5 @@
 import { Trash2, Plus, Sparkles, Utensils } from 'lucide-react';
+import FOOD_MASTER_DB from '../utils/food';
 
 export default function DailyCalorieView({ 
   profile, 
@@ -26,6 +27,37 @@ export default function DailyCalorieView({
     { id: 'snacks', title: lang === 'bn' ? '☕ ইভনিং স্ন্যাকস' : '☕ Evening Snacks' },
     { id: 'dinner', title: lang === 'bn' ? '🌙 ডিনার' : '🌙 Dinner' },
   ];
+
+  // Dynamic Language Name Resolver
+  const getFoodDisplayName = (item) => {
+    if (lang === 'bn' && item.nameBn) return item.nameBn;
+    if (lang === 'en' && item.nameEn) return item.nameEn;
+
+    // Ager save kora static item gulo 700 DB theke khuje bilingual kora
+    const matched = FOOD_MASTER_DB.find(db => 
+      (item.foodId && db.id === item.foodId) ||
+      (db.en && db.en.toLowerCase() === (item.name || '').toLowerCase()) ||
+      (db.bn && db.bn.toLowerCase() === (item.name || '').toLowerCase())
+    );
+
+    if (matched) {
+      return lang === 'bn' ? matched.bn : matched.en;
+    }
+
+    return item.name;
+  };
+
+  // Dynamic Portion Translation
+  const getPortionDisplayName = (portionStr) => {
+    if (!portionStr) return '';
+    if (lang === 'en') return portionStr;
+    return portionStr
+      .replace(/plate/gi, 'প্লেট')
+      .replace(/pcs|pc/gi, 'টি')
+      .replace(/cup|bowl/gi, 'বাটি')
+      .replace(/glass/gi, 'গ্লাস')
+      .replace(/slice/gi, 'টুকরা');
+  };
 
   return (
     <div className="space-y-4 animate-in fade-in duration-300">
@@ -66,7 +98,7 @@ export default function DailyCalorieView({
           </div>
         </div>
 
-        {/* Macro Progress Bars (matching Image 1) */}
+        {/* Macro Progress Bars */}
         <div className="space-y-2.5">
           {/* Protein */}
           <div>
@@ -132,10 +164,14 @@ export default function DailyCalorieView({
               ) : (
                 <div className="space-y-2">
                   {items.map((item, idx) => (
-                    <div key={idx} className="flex justify-between items-center p-2 rounded-xl bg-slate-50 dark:bg-darkSurface border border-slate-100 dark:border-slate-800">
+                    <div key={idx} className="flex justify-between items-center p-2.5 rounded-xl bg-slate-50 dark:bg-darkSurface border border-slate-100 dark:border-slate-800">
                       <div>
-                        <h4 className="text-xs font-semibold text-slate-900 dark:text-white">{item.name}</h4>
-                        <p className="text-[10px] text-slate-400">{item.portion} • P: {item.protein}g | C: {item.carbs}g | F: {item.fat}g</p>
+                        <h4 className="text-xs font-semibold text-slate-900 dark:text-white">
+                          {getFoodDisplayName(item)}
+                        </h4>
+                        <p className="text-[10px] text-slate-400">
+                          {getPortionDisplayName(item.portion)} • P: {item.protein}g | C: {item.carbs}g | F: {item.fat}g
+                        </p>
                       </div>
                       <div className="flex items-center gap-2">
                         <span className="text-xs font-bold text-slate-700 dark:text-slate-200">+{item.calories}</span>

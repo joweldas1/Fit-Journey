@@ -1,8 +1,20 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
 import FOOD_MASTER_DB from './food';
 
-const apiKey = import.meta.env.VITE_GEMINI_API_KEY || "AQ.Ab8RN6KRBGlixcmClean_Key_Here"; // Tomar asol key rakhbe
-const genAI = new GoogleGenerativeAI(apiKey);
+// 1. API Key Clean Retrieval
+const rawApiKey = import.meta.env.VITE_GEMINI_API_KEY || "";
+const cleanApiKey = rawApiKey.replace(/["';\s]/g, "").trim();
+
+// আপনার ড্রপডাউনে থাকা ৩.৮ ফ্ল্যাশ এবং ৩.৫ ফ্ল্যাশ-লাইট মডেলগুলো সবার আগে রাখা হলো
+const MODELS_TO_TRY = [
+  "gemini-3.8-flash",
+  "3.8-flash",
+  "gemini-3.5-flash-lite",
+  "3.5-flash-lite",
+  "gemini-3.1-pro",
+  "3.1-pro",
+  "gemini-2.0-flash",
+  "gemini-1.5-flash"
+];
 
 function extractQuantity(text) {
   const clean = text.toLowerCase().trim();
@@ -28,12 +40,11 @@ function extractQuantity(text) {
 function formatPortionAndTitle(item, detectedQty, isEnglish) {
   const rawUnit = item.unit || 'plate';
   const cleanUnit = rawUnit.replace(/^[\d.]+\s*/, '').trim() || 'plate';
-
   const portionText = `${detectedQty} ${cleanUnit}`;
   const itemName = isEnglish ? item.en : item.bn;
 
   return {
-    name: itemName, // <-- EIKHAN THEKE PORTION TEXT SHORIYE FELECHI
+    name: itemName,
     portion: portionText
   };
 }
@@ -52,6 +63,9 @@ function searchLocalFoods(normalizedQuery, detectedQty, isEnglish) {
       type: 'SINGLE_MATCH',
       data: {
         name: formatted.name,
+        nameBn: exactMatch.bn,
+        nameEn: exactMatch.en,
+        foodId: exactMatch.id,
         calories: Math.round(exactMatch.cal * detectedQty),
         protein: Math.round(exactMatch.p * detectedQty * 10) / 10,
         carbs: Math.round(exactMatch.c * detectedQty * 10) / 10,
@@ -98,78 +112,102 @@ export async function analyzeFoodWithAI(foodQuery, lang = 'en') {
   }
 
   const detectedQty = extractQuantity(normalizedQuery);
-  
-  // v4 cache key dewa hoyeche jate ager "1 plate" namer sathe jora thaka data muche jay
-  const cacheKey = `fit_journey_food_v4_${normalizedQuery}`;
+  const cacheKey = `fit_ai_v10_${lang}_${normalizedQuery}`;
 
+  // 1. Cache Check
   const cachedData = localStorage.getItem(cacheKey);
   if (cachedData) {
     try {
       const parsed = JSON.parse(cachedData);
+      console.log("⚡ Found in Cache:", parsed.name);
       return { type: 'SINGLE_MATCH', data: parsed };
     } catch (e) {
-      console.warn("Cache parsing error", e);
+      console.warn("Cache parse error", e);
     }
   }
 
-  // 1. AI SEARCH FIRST
-  try {
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+  // 2. Direct REST Call with 3.8 / 3.5 Models
+  if (cleanApiKey) {
     const targetLang = isEnglish ? "English" : "Bengali";
-    
-    // Eikhane prompt-e clearly bola hoyeche je namer sathe portion add na korte
     const prompt = `
       You are an accurate clinical dietitian nutritional calculator.
-      Analyze: "${foodQuery}".
-      Portion standard: Use realistic, standard home-cooked preparation.
-      Format rule: Never repeat digits in portion (e.g. return strictly "${detectedQty} plate" or "${detectedQty} pc").
-      Name rule: ONLY return the clean food name in ${targetLang}. DO NOT include the quantity or portion in the "name" field.
-      Return STRICT raw JSON without markdown or codeblocks:
+      Analyze this food: "${foodQuery}".
+      Portion format: strictly "${detectedQty} plate" or "${detectedQty} pc" or "${detectedQty} glass".
+      Name format: Clean food name only in ${targetLang}. Never include numbers inside "name".
+      Return STRICT valid JSON without markdown or backticks:
       {
-        "name": "Clean food name only in ${targetLang}",
+        "name": "Food name in ${targetLang}",
+        "nameBn": "Food name in Bengali",
+        "nameEn": "Food name in English",
         "calories": number,
         "protein": number,
         "carbs": number,
         "fat": number,
-        "portion": "${detectedQty} plate"
+        "portion": "${detectedQty} serving"
       }
     `;
 
-    const result = await model.generateContent(prompt);
-    let text = result.response.text().replace(/```json/gi, "").replace(/```/gi, "").trim();
-    const liveData = JSON.parse(text);
+    for (const model of MODELS_TO_TRY) {
+      try {
+        console.log(`📡 Calling Gemini AI with [${model}]...`);
+        const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${cleanApiKey}`;
 
-    if (liveData && liveData.calories) {
-      // Clean up just in case AI still adds numbers to the name
-      const cleanName = (liveData.name || foodQuery).replace(/^[\d.]+\s*(plate|pc|টি|প্লেট|বাটি|cup|bowl)\s*/i, '').trim();
+        const response = await fetch(endpoint, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: prompt }] }]
+          })
+        });
 
-      const res = {
-        name: cleanName,
-        calories: Math.round(liveData.calories),
-        protein: Math.round((liveData.protein || 0) * 10) / 10,
-        carbs: Math.round((liveData.carbs || 0) * 10) / 10,
-        fat: Math.round((liveData.fat || 0) * 10) / 10,
-        portion: liveData.portion || `${detectedQty} plate`,
-        source: 'live_analyzed'
-      };
+        if (!response.ok) {
+          console.warn(`Model ${model} returned HTTP ${response.status}`);
+          continue;
+        }
 
-      localStorage.setItem(cacheKey, JSON.stringify(res));
-      return { type: 'SINGLE_MATCH', data: res };
+        const data = await response.json();
+        const rawText = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+
+        if (rawText) {
+          const cleanJson = rawText.replace(/```json/gi, "").replace(/```/gi, "").trim();
+          const liveData = JSON.parse(cleanJson);
+
+          if (liveData && (liveData.calories || liveData.calories === 0)) {
+            const cleanName = (liveData.name || foodQuery)
+              .replace(/^[\d.]+\s*(plate|pc|টি|প্লেট|বাটি|cup|bowl|glass)\s*/i, '')
+              .trim();
+
+            const res = {
+              name: cleanName,
+              nameBn: liveData.nameBn || cleanName,
+              nameEn: liveData.nameEn || cleanName,
+              calories: Math.round(Number(liveData.calories)),
+              protein: Math.round((Number(liveData.protein) || 0) * 10) / 10,
+              carbs: Math.round((Number(liveData.carbs) || 0) * 10) / 10,
+              fat: Math.round((Number(liveData.fat) || 0) * 10) / 10,
+              portion: liveData.portion || `${detectedQty} serving`,
+              source: 'live_analyzed'
+            };
+
+            localStorage.setItem(cacheKey, JSON.stringify(res));
+            console.log(`🎉 Success using Model [${model}]:`, res);
+            return { type: 'SINGLE_MATCH', data: res };
+          }
+        }
+      } catch (err) {
+        console.warn(`Attempt failed for ${model}:`, err);
+      }
     }
-  } catch (err) {
-    console.warn("AI search unavailable, falling back to 700 DB:", err);
   }
 
-  // 2. FALLBACK TO LOCAL DB
+  // 3. Fallback to Local 700 DB
+  console.warn("⚠️ AI Models unavailable, loading from 700 Local Database...");
   const localResult = searchLocalFoods(normalizedQuery, detectedQty, isEnglish);
   if (localResult) {
-    if (localResult.type === 'SINGLE_MATCH') {
-      localStorage.setItem(cacheKey, JSON.stringify(localResult.data));
-    }
     return localResult;
   }
 
-  // 3. SUGGESTIONS
+  // 4. Default Suggestions
   return {
     type: 'MULTIPLE_SUGGESTIONS',
     items: FOOD_MASTER_DB.slice(0, 4).map(item => {
