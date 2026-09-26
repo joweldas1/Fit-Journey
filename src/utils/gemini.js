@@ -129,13 +129,20 @@ export async function analyzeFoodWithAI(foodQuery, lang = 'en') {
   // 2. Direct REST Call with 3.8 / 3.5 Models
   if (cleanApiKey) {
     const targetLang = isEnglish ? "English" : "Bengali";
+// Target prompt with strict non-food detection
     const prompt = `
       You are an accurate clinical dietitian nutritional calculator.
-      Analyze this food: "${foodQuery}".
-      Portion format: strictly "${detectedQty} plate" or "${detectedQty} pc" or "${detectedQty} glass".
-      Name format: Clean food name only in ${targetLang}. Never include numbers inside "name".
+      Analyze this user input: "${foodQuery}".
+
+      CRITICAL RULE:
+      Determine if this input is a real edible food, meal, beverage, or grocery item meant for human consumption.
+      If it is NOT food (e.g. furniture like table/chair, electronics, animals, toys, random objects, toxic substances), set "isFood": false.
+
+      If it IS food, set "isFood": true.
+
       Return STRICT valid JSON without markdown or backticks:
       {
+        "isFood": boolean,
         "name": "Food name in ${targetLang}",
         "nameBn": "Food name in Bengali",
         "nameEn": "Food name in English",
@@ -143,11 +150,11 @@ export async function analyzeFoodWithAI(foodQuery, lang = 'en') {
         "protein": number,
         "carbs": number,
         "fat": number,
-        "portion": "${detectedQty} serving"
+        "portion": "${detectedQty} portion"
       }
     `;
 
-    for (const model of MODELS_TO_TRY) {
+  for (const model of MODELS_TO_TRY) {
       try {
         console.log(`📡 Calling Gemini AI with [${model}]...`);
         const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${cleanApiKey}`;
@@ -160,11 +167,13 @@ export async function analyzeFoodWithAI(foodQuery, lang = 'en') {
           })
         });
 
+        // ১. রেসপন্স সফল হয়েছে কি না চেক
         if (!response.ok) {
           console.warn(`Model ${model} returned HTTP ${response.status}`);
           continue;
         }
 
+        // ২. ডাটা রিসিভ ও ক্লিন করা
         const data = await response.json();
         const rawText = data?.candidates?.[0]?.content?.parts?.[0]?.text;
 
@@ -172,29 +181,41 @@ export async function analyzeFoodWithAI(foodQuery, lang = 'en') {
           const cleanJson = rawText.replace(/```json/gi, "").replace(/```/gi, "").trim();
           const liveData = JSON.parse(cleanJson);
 
-          if (liveData && (liveData.calories || liveData.calories === 0)) {
-            const cleanName = (liveData.name || foodQuery)
-              .replace(/^[\d.]+\s*(plate|pc|টি|প্লেট|বাটি|cup|bowl|glass)\s*/i, '')
-              .trim();
+          // ৩. এইখানে বসবে লাইভ ডাটা ও Non-food গার্ড
+          if (liveData) {
+            // খাবার না হলে এরর থ্রো করবে
+            if (liveData.isFood === false) {
+              throw new Error(isEnglish ? "This is not an edible food item!" : "এটি কোনো খাবার নয়! সঠিক খাবারের নাম লিখুন।");
+            }
 
-            const res = {
-              name: cleanName,
-              nameBn: liveData.nameBn || cleanName,
-              nameEn: liveData.nameEn || cleanName,
-              calories: Math.round(Number(liveData.calories)),
-              protein: Math.round((Number(liveData.protein) || 0) * 10) / 10,
-              carbs: Math.round((Number(liveData.carbs) || 0) * 10) / 10,
-              fat: Math.round((Number(liveData.fat) || 0) * 10) / 10,
-              portion: liveData.portion || `${detectedQty} serving`,
-              source: 'live_analyzed'
-            };
+            if (liveData.calories || liveData.calories === 0) {
+              const cleanName = (liveData.name || foodQuery)
+                .replace(/^[\d.]+\s*(plate|pc|টি|প্লেট|বাটি|cup|bowl|glass)\s*/i, '')
+                .trim();
 
-            localStorage.setItem(cacheKey, JSON.stringify(res));
-            console.log(`🎉 Success using Model [${model}]:`, res);
-            return { type: 'SINGLE_MATCH', data: res };
+              const res = {
+                name: cleanName,
+                nameBn: liveData.nameBn || cleanName,
+                nameEn: liveData.nameEn || cleanName,
+                calories: Math.round(Number(liveData.calories)),
+                protein: Math.round((Number(liveData.protein) || 0) * 10) / 10,
+                carbs: Math.round((Number(liveData.carbs) || 0) * 10) / 10,
+                fat: Math.round((Number(liveData.fat) || 0) * 10) / 10,
+                portion: liveData.portion || `${detectedQty} serving`,
+                source: 'live_analyzed'
+              };
+
+              localStorage.setItem(cacheKey, JSON.stringify(res));
+              console.log(`🎉 Success using Model [${model}]:`, res);
+              return { type: 'SINGLE_MATCH', data: res };
+            }
           }
         }
       } catch (err) {
+        // খাবার না হলে সরাসরি বাইরে এরর পাস করবে যেন লাল টোস্ট দেখায়
+        if (err.message && (err.message.includes("খাবার নয়") || err.message.includes("not an edible"))) {
+          throw err;
+        }
         console.warn(`Attempt failed for ${model}:`, err);
       }
     }
