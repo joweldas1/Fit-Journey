@@ -1,5 +1,6 @@
 export const t = {
   bn: {
+    // Existing Onboarding Translations
     welcomeBadge: "স্মার্ট ফিটনেস জার্নি",
     welcomeTitle: "আপনার ওজন বৃদ্ধির যাত্রা শুরু হোক",
     welcomeSub: "দৈনন্দিন রুটিন ও বিজ্ঞানসম্মত পুষ্টির সাথে লক্ষ্যে পৌঁছান সহজে।",
@@ -39,9 +40,26 @@ export const t = {
     errWeight: "বর্তমান ওজন ৩০ থেকে ১৮০ কেজির মধ্যে হতে হবে",
     errTargetWeight: "টার্গেট ওজন বর্তমান ওজনের চেয়ে অন্তত ১ কেজি বেশি হতে হবে",
     errUnrealisticTarget: "স্বাস্থ্যঝুঁকি এড়াতে প্রতি মাসে সর্বোচ্চ ৪ কেজি পর্যন্ত লক্ষ্য নির্ধারণ করুন",
-    successMsg: "টার্গেট সফলভাবে হিসাব করা হয়েছে!"
+    successMsg: "টার্গেট সফলভাবে হিসাব করা হয়েছে!",
+
+    // New 100% UI Sync Translations
+    appTitle: "আমার ফিটনেস জার্নি",
+    dailyProgressTitle: "দৈনিক ক্যালোরি অগ্রগতি",
+    complete: "সম্পন্ন",
+    addFood: "খাবার যোগ",
+    logExercise: "ব্যায়াম লগ",
+    goal: "টার্গেট",
+    burned: "বার্ন",
+    mealsLogged: "মিল রেকর্ড",
+    items: "টি খাবার",
+    kcalPerDay: "ক্যালোরি/দিন",
+    journeyTab: "মাই ফিটনেস জার্নি",
+    targetTab: "ডেইলি ক্যালোরি টার্গেট",
+    analyticsTab: "ওজন বৃদ্ধি অগ্রগতি",
+    resetBtn: "রিসেট / রি-ক্যালকুলেট করুন"
   },
   en: {
+    // Existing Onboarding Translations
     welcomeBadge: "SMART FITNESS JOURNEY",
     welcomeTitle: "Start Your Weight Gain Journey",
     welcomeSub: "Reach your dream physique with science-backed nutrition and smart habits.",
@@ -81,6 +99,22 @@ export const t = {
     errWeight: "Current weight must be between 30 and 180 kg",
     errTargetWeight: "Target weight must be greater than current weight",
     errUnrealisticTarget: "For safety, maximum target gain is 4 kg per month",
-    successMsg: "Target calculated successfully!"
+    successMsg: "Target calculated successfully!",
+
+    // New 100% UI Sync Translations
+    appTitle: "My Fitness Journey",
+    dailyProgressTitle: "Daily Calorie Progress",
+    complete: "Complete",
+    addFood: "Add Food",
+    logExercise: "Log Exercise",
+    goal: "Goal",
+    burned: "Burned",
+    mealsLogged: "Meals Logged",
+    items: "items",
+    kcalPerDay: "kcal/day",
+    journeyTab: "My Fitness Journey",
+    targetTab: "Daily Calorie Target",
+    analyticsTab: "Weight Progress",
+    resetBtn: "Recalculate / Reset"
   }
 };

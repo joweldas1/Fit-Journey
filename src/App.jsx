@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Toaster, toast } from 'sonner';
-import { Dumbbell, AlertTriangle, Timer, X, Check, Plus } from 'lucide-react';
+import { Dumbbell, AlertTriangle, Timer, Plus } from 'lucide-react';
 import Header from './components/Header';
 import OnboardingModal from './components/OnboardingModal';
 import CalorieGauge from './components/CalorieGauge';
@@ -15,13 +15,11 @@ export default function App() {
   const [profile, setProfile] = useState(null);
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [lang, setLang] = useState('bn');
-  const [activeTab, setActiveTab] = useState('journey'); // 'journey' | 'target' | 'analytics'
+  const [activeTab, setActiveTab] = useState('journey');
 
-  // Modals
   const [isAddFoodOpen, setIsAddFoodOpen] = useState(false);
   const [isExerciseOpen, setIsExerciseOpen] = useState(false);
 
-  // Daily Foods & Workouts State (Stored per date)
   const todayKey = new Date().toISOString().split('T')[0];
   const [foods, setFoods] = useState(() => {
     const saved = localStorage.getItem(`fit_foods_${todayKey}`);
@@ -33,11 +31,9 @@ export default function App() {
     return saved ? JSON.parse(saved) : [];
   });
 
-  // Security Countdown Reset States (120 seconds)
   const [showResetCountdown, setShowResetCountdown] = useState(false);
   const [timeLeft, setTimeLeft] = useState(120);
 
-  // Sync profile from localStorage
   useEffect(() => {
     const saved = localStorage.getItem('fit_profile');
     if (saved) {
@@ -49,7 +45,6 @@ export default function App() {
     }
   }, []);
 
-  // Theme Sync
   useEffect(() => {
     if (darkMode) {
       document.documentElement.classList.add('dark');
@@ -58,7 +53,6 @@ export default function App() {
     }
   }, [darkMode]);
 
-  // Persist Foods & Exercises
   useEffect(() => {
     localStorage.setItem(`fit_foods_${todayKey}`, JSON.stringify(foods));
   }, [foods, todayKey]);
@@ -67,7 +61,6 @@ export default function App() {
     localStorage.setItem(`fit_exercises_${todayKey}`, JSON.stringify(exercises));
   }, [exercises, todayKey]);
 
-  // 2 Minutes Reset Countdown Timer
   useEffect(() => {
     let timerId;
     if (showResetCountdown && timeLeft > 0) {
@@ -107,15 +100,14 @@ export default function App() {
     return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
   };
 
-  const txt = t[lang];
+  const txt = t[lang] || t.bn;
 
-  // Dynamic Daily Totals
   const targetCalories = profile?.dailyCalorieTarget || 2400;
   const consumedCalories = foods.reduce((acc, f) => acc + (f.calories || 0), 0);
   const burnedCalories = exercises.reduce((acc, e) => acc + (e.caloriesBurned || 0), 0);
 
   return (
-    <div className={`min-h-screen transition-colors duration-300 ${darkMode ? 'bg-darkBg text-slate-100' : 'bg-slate-50 text-slate-800'}`}>
+    <div className={`min-h-screen w-full transition-colors duration-300 ${darkMode ? 'bg-darkBg text-slate-100' : 'bg-slate-50 text-slate-800'}`}>
       
       <Toaster position="top-center" richColors theme={darkMode ? 'dark' : 'light'} />
 
@@ -158,7 +150,7 @@ export default function App() {
         </div>
       )}
 
-      {/* Onboarding Wizard */}
+      {/* Onboarding Modal */}
       {showOnboarding && (
         <OnboardingModal 
           darkMode={darkMode}
@@ -188,69 +180,73 @@ export default function App() {
         lang={lang}
       />
 
-      <main className="max-w-md mx-auto min-h-screen flex flex-col justify-between p-4 sm:p-5 border-x border-slate-200/50 dark:border-slate-800/80 shadow-2xl">
-        
-        {/* Header */}
-        <Header 
-          profile={profile}
-          darkMode={darkMode}
-          setDarkMode={setDarkMode}
-          lang={lang}
-          setLang={setLang}
-          onTriggerReset={() => { setTimeLeft(120); setShowResetCountdown(true); }}
-          activeTab={activeTab}
-          setActiveTab={setActiveTab}
-        />
+      {/* 1. STICKY HEADER (Full width at top) */}
+      <Header 
+        profile={profile}
+        darkMode={darkMode}
+        setDarkMode={setDarkMode}
+        lang={lang}
+        setLang={setLang}
+        onTriggerReset={() => { setTimeLeft(120); setShowResetCountdown(true); }}
+        activeTab={activeTab}
+        setActiveTab={setActiveTab}
+      />
 
-        {/* View 1: My Fitness Journey (Dashboard) */}
+      {/* 2. FULL SCREEN EDGE-TO-EDGE MOBILE VIEW CONTAINER */}
+      <main className="w-full max-w-md mx-auto min-h-[calc(100vh-65px)] flex flex-col justify-between px-4 sm:px-5 pb-6 pt-3">
+        
+        {/* Tab 1: Journey Dashboard */}
         {activeTab === 'journey' && (
           <div className="space-y-4 my-auto animate-in fade-in duration-300">
             
-            {/* Calorie Gauge Card (Semi-Circle Meter) */}
+            {/* Calorie Gauge Card */}
             <div className="bg-white dark:bg-darkCard p-6 rounded-[32px] border border-slate-100 dark:border-slate-800 shadow-sm">
-              <CalorieGauge consumed={consumedCalories} target={targetCalories} />
+              <CalorieGauge consumed={consumedCalories} target={targetCalories} lang={lang} />
 
-              {/* Action Buttons */}
+              {/* Action Buttons: Fixed + + Double Plus & Added Orange-Amber Gradient */}
               <div className="grid grid-cols-2 gap-3 mt-6">
                 <button 
+                  type="button"
                   onClick={() => setIsAddFoodOpen(true)}
-                  className="flex items-center justify-center gap-1.5 py-3.5 px-4 rounded-2xl bg-teal-600 hover:bg-teal-700 text-white font-medium text-xs shadow-md shadow-teal-600/25 active:scale-95 transition"
+                  className="flex items-center justify-center gap-2 py-3.5 px-4 rounded-2xl bg-gradient-to-r from-brandOrange via-orange-500 to-amber-500 hover:opacity-95 text-white font-semibold text-xs shadow-lg shadow-orange-500/25 active:scale-95 transition-all"
                 >
-                  <Plus className="w-4 h-4" />
-                  <span>+ Add Food</span>
+                  <Plus className="w-4 h-4 stroke-[2.5]" />
+                  <span>{txt.addFood}</span>
                 </button>
+                
                 <button 
+                  type="button"
                   onClick={() => setIsExerciseOpen(true)}
-                  className="flex items-center justify-center gap-1.5 py-3.5 px-4 rounded-2xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 font-medium text-xs active:scale-95 transition"
+                  className="flex items-center justify-center gap-2 py-3.5 px-4 rounded-2xl bg-slate-100 dark:bg-darkSurface hover:bg-slate-200 dark:hover:bg-slate-800/80 text-slate-700 dark:text-slate-200 border border-slate-200/80 dark:border-slate-800 font-semibold text-xs active:scale-95 transition-all"
                 >
-                  <Dumbbell className="w-4 h-4" />
-                  <span>Log Exercise</span>
+                  <Dumbbell className="w-4 h-4 text-teal-500" />
+                  <span>{txt.logExercise}</span>
                 </button>
               </div>
             </div>
 
-            {/* Quick Summary Pill Card */}
+            {/* Quick Summary Dock Bar with 100% Language Sync */}
             <div className="bg-white dark:bg-darkCard p-4 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm flex justify-around text-center text-xs">
               <div>
-                <span className="text-[10px] text-slate-400 uppercase font-semibold">Goal</span>
+                <span className="text-[10px] text-slate-400 uppercase font-semibold">{txt.goal}</span>
                 <p className="font-bold text-slate-900 dark:text-white mt-0.5">{profile ? `${profile.currentWeight} ➔ ${profile.targetWeight} kg` : '--'}</p>
               </div>
               <div className="border-l border-slate-100 dark:border-slate-800" />
               <div>
-                <span className="text-[10px] text-slate-400 uppercase font-semibold">Burned</span>
+                <span className="text-[10px] text-slate-400 uppercase font-semibold">{txt.burned}</span>
                 <p className="font-bold text-teal-500 mt-0.5">-{burnedCalories} kcal</p>
               </div>
               <div className="border-l border-slate-100 dark:border-slate-800" />
               <div>
-                <span className="text-[10px] text-slate-400 uppercase font-semibold">Meals Logged</span>
-                <p className="font-bold text-brandOrange mt-0.5">{foods.length} items</p>
+                <span className="text-[10px] text-slate-400 uppercase font-semibold">{txt.mealsLogged}</span>
+                <p className="font-bold text-brandOrange mt-0.5">{foods.length} {txt.items}</p>
               </div>
             </div>
 
           </div>
         )}
 
-        {/* View 2: Daily Calorie Target Tab */}
+        {/* Tab 2: Daily Calorie Target Tab */}
         {activeTab === 'target' && profile && (
           <DailyCalorieView 
             profile={profile}
@@ -261,7 +257,7 @@ export default function App() {
           />
         )}
 
-        {/* View 3: Global Calendar & Weight Analytics Tab */}
+        {/* Tab 3: Global Calendar & Weight Analytics Tab */}
         {activeTab === 'analytics' && (
           <GlobalCalendarView 
             profile={profile}

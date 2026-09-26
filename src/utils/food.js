@@ -703,4 +703,15 @@ const FOOD_MASTER_DB =[
 
 ]
 
-export default FOOD_MASTER_DB;
+
+// Standard Home-Cooked Calibrated DB (15% Over-estimate Reduction)
+const CALIBRATED_FOOD_DB = FOOD_MASTER_DB.map(item => ({
+  ...item,
+  cal: Math.round(item.cal * 0.85), // Calorie 15% komiye standard map-e ana holo
+  p: Math.round(item.p * 0.95 * 10) / 10, // Protein pray intact rakha holo
+  c: Math.round(item.c * 0.85 * 10) / 10, // Carbs 15% downscale
+  f: Math.round(item.f * 0.80 * 10) / 10  // Extra rannar tel/fat 20% komano holo
+}));
+
+export default CALIBRATED_FOOD_DB;
+

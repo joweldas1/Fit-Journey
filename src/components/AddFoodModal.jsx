@@ -1,15 +1,15 @@
 import { useState, useEffect, useRef } from 'react';
-import { X, Sparkles, Loader2, Utensils, Check } from 'lucide-react';
+import { X, Sparkles, Loader2, Utensils, Check, ArrowRight, ListPlus, Bot, Database } from 'lucide-react';
 import { toast } from 'sonner';
 import { analyzeFoodWithAI } from '../utils/gemini';
-import FOOD_MASTER_DB from '../utils/food'; // 700+ food database import
+import FOOD_MASTER_DB from '../utils/food';
 
 const QUICK_FOODS = [
   { label: "+২টি কলা", text: "পাকা কলা" },
   { label: "+১ বাটি চিড়া", text: "চিড়া" },
   { label: "+ছোলা ও চীনাবাদাম", text: "চিনাবাদাম" },
   { label: "+সিদ্ধ ডিম", text: "ডিম কারি" },
-  { label: "+ভাত ও ডাল", text: "চাল ভাত" },
+  { label: "+ভাত ও ডাল", text: "ডাল ভাত" },
 ];
 
 export default function AddFoodModal({ isOpen, onClose, onAddFood, lang = 'bn' }) {
@@ -17,13 +17,12 @@ export default function AddFoodModal({ isOpen, onClose, onAddFood, lang = 'bn' }
   const [selectedMeal, setSelectedMeal] = useState('breakfast');
   const [loading, setLoading] = useState(false);
   const [aiPreview, setAiPreview] = useState(null);
+  const [relevantItems, setRelevantItems] = useState([]);
   
-  // Suggestion States
   const [suggestions, setSuggestions] = useState([]);
   const [showDropdown, setShowDropdown] = useState(false);
   const dropdownRef = useRef(null);
 
-  // Time-based auto-detection of meal
   useEffect(() => {
     const currentHour = new Date().getHours();
     if (currentHour >= 5 && currentHour < 11) setSelectedMeal('breakfast');
@@ -32,7 +31,6 @@ export default function AddFoodModal({ isOpen, onClose, onAddFood, lang = 'bn' }
     else setSelectedMeal('dinner');
   }, [isOpen]);
 
-  // Close dropdown on outside click
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
@@ -45,17 +43,17 @@ export default function AddFoodModal({ isOpen, onClose, onAddFood, lang = 'bn' }
 
   if (!isOpen) return null;
 
-  // Handle live input change & filter suggestions from 700 foods
   const handleInputChange = (e) => {
     const val = e.target.value;
     setFoodQuery(val);
+    setRelevantItems([]);
 
     if (val.trim().length >= 1) {
       const keyword = val.toLowerCase().trim();
       const filtered = FOOD_MASTER_DB.filter(item => 
         item.bn.toLowerCase().includes(keyword) || 
         item.en.toLowerCase().includes(keyword)
-      ).slice(0, 8); // Top 8 suggestions
+      ).slice(0, 8);
 
       setSuggestions(filtered);
       setShowDropdown(true);
@@ -75,33 +73,42 @@ export default function AddFoodModal({ isOpen, onClose, onAddFood, lang = 'bn' }
   const handleAIAnalyze = async (queryText) => {
     const query = queryText || foodQuery;
     if (!query.trim()) {
-      toast.warning(lang === 'bn' ? 'খাবারের নাম বা বিবরণ লিখুন' : 'Please enter food details');
+      toast.warning(lang === 'bn' ? 'খাবারের নাম লিখুন' : 'Please enter food name');
       return;
     }
     setLoading(true);
     setAiPreview(null);
+    setRelevantItems([]);
     setShowDropdown(false);
+
     try {
-      const data = await analyzeFoodWithAI(query, lang);
-      setAiPreview(data);
-    } catch (err) {
-      try {
-        const errorObj = JSON.parse(err.message);
-        if (errorObj.type === "AI_FAILED_MANUAL_REQUIRED") {
-          // Open manual entry or toast
-          toast.info(lang === 'bn' ? 'এই খাবারটি ডাটাবেসে নেই, ম্যানুয়ালি যোগ করুন' : 'Food not found, add manually');
-        }
-      } catch {
-        toast.error(err.message || 'বিশ্লেষণ করতে ব্যর্থ হয়েছে');
+      const res = await analyzeFoodWithAI(query, lang);
+      if (res.type === 'SINGLE_MATCH') {
+        setAiPreview(res.data);
+      } else if (res.type === 'MULTIPLE_SUGGESTIONS') {
+        setRelevantItems(res.items);
       }
+    } catch {
+      toast.error('হিসাব করতে সমস্যা হয়েছে, অনুগ্রহ করে ড্রপডাউন থেকে সিলেক্ট করুন');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleQuickAdd = (text) => {
-    setFoodQuery(text);
-    handleAIAnalyze(text);
+  const handlePickRelevantFood = (item) => {
+    setAiPreview({
+      name: item.displayName || item.bn,
+      calories: item.calories || item.cal,
+      protein: item.protein || item.p,
+      carbs: item.carbs || item.c,
+      fat: item.fat || item.f,
+      portion: item.portion || item.unit,
+      aiTip: lang === 'bn' 
+        ? "আমাদের ৭০০+ ফুড ডাটাবেস থেকে ভেরিফায়েড পুষ্টিমান লোড হয়েছে।" 
+        : "Verified nutrition loaded from 700+ database.",
+      source: 'local_database'
+    });
+    setRelevantItems([]);
   };
 
   const handleConfirmAdd = () => {
@@ -115,6 +122,7 @@ export default function AddFoodModal({ isOpen, onClose, onAddFood, lang = 'bn' }
     onClose();
     setFoodQuery('');
     setAiPreview(null);
+    setRelevantItems([]);
   };
 
   return (
@@ -136,7 +144,7 @@ export default function AddFoodModal({ isOpen, onClose, onAddFood, lang = 'bn' }
           </button>
         </div>
 
-        {/* Meal Category Time-Window Selector */}
+        {/* Meal Category */}
         <div className="my-4">
           <label className="text-[11px] font-medium text-slate-400 block mb-2">
             {lang === 'bn' ? 'মিলের সময় নির্বাচন করুন:' : 'Select Meal Time:'}
@@ -164,27 +172,19 @@ export default function AddFoodModal({ isOpen, onClose, onAddFood, lang = 'bn' }
           </div>
         </div>
 
-        {/* Food Input Search Bar with Live Suggestions Dropdown */}
+        {/* Input Bar */}
         <div className="relative mb-3" ref={dropdownRef}>
           <input
             type="text"
             value={foodQuery}
             onChange={handleInputChange}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') {
-                setShowDropdown(false);
-                handleAIAnalyze();
-              }
-            }}
-            placeholder={lang === 'bn' ? "যেমন: কলা, ভাত, ডিম, বিরিয়ানি..." : "e.g. banana, rice, egg..."}
+            onKeyDown={(e) => e.key === 'Enter' && handleAIAnalyze()}
+            placeholder={lang === 'bn' ? "যেমন: ডাল ভাত, ১টি কলা, ২টি সিদ্ধ ডিম..." : "e.g. rice, banana, egg..."}
             className="w-full px-4 py-3.5 pr-24 rounded-2xl bg-slate-50 dark:bg-slate-900/60 border border-slate-300 dark:border-slate-700 text-sm focus:border-brandOrange focus:outline-none"
           />
           <button
             type="button"
-            onClick={() => {
-              setShowDropdown(false);
-              handleAIAnalyze();
-            }}
+            onClick={() => handleAIAnalyze()}
             disabled={loading}
             className="absolute right-2 top-2 bottom-2 px-3 rounded-xl bg-brandOrange text-white text-xs font-medium flex items-center gap-1 active:scale-95 transition disabled:opacity-50"
           >
@@ -192,50 +192,73 @@ export default function AddFoodModal({ isOpen, onClose, onAddFood, lang = 'bn' }
             <span>{lang === 'bn' ? 'হিসাব' : 'Analyze'}</span>
           </button>
 
-          {/* Live Suggestions Dropdown List */}
-         {showDropdown && suggestions.length > 0 && (
-  <ul className="absolute left-0 right-0 mt-1 max-h-56 overflow-y-auto bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-xl z-50 divide-y divide-slate-100 dark:divide-slate-800">
-    {suggestions.map((item) => (
-      <li
-        key={item.id}
-        onClick={() => handleSelectSuggestion(item)}
-        className="px-4 py-2.5 text-xs flex items-center justify-between hover:bg-orange-500/10 dark:hover:bg-slate-800 cursor-pointer transition"
-      >
-        <span className="font-medium text-slate-800 dark:text-slate-200">
-          {lang === 'en' ? (
-            <>
-              {item.en} <span className="text-[10px] text-slate-400">({item.bn})</span>
-            </>
-          ) : (
-            <>
-              {item.bn} <span className="text-[10px] text-slate-400">({item.en})</span>
-            </>
+          {/* Suggestions Dropdown */}
+          {showDropdown && suggestions.length > 0 && (
+            <ul className="absolute left-0 right-0 mt-1 max-h-56 overflow-y-auto bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-xl z-50 divide-y divide-slate-100 dark:divide-slate-800">
+              {suggestions.map((item) => (
+                <li
+                  key={item.id}
+                  onClick={() => handleSelectSuggestion(item)}
+                  className="px-4 py-2.5 text-xs flex items-center justify-between hover:bg-orange-500/10 dark:hover:bg-slate-800 cursor-pointer transition"
+                >
+                  <span className="font-medium text-slate-800 dark:text-slate-200">
+                    {lang === 'en' ? item.en : item.bn}
+                  </span>
+                  <span className="text-brandOrange font-bold">
+                    {item.cal} kcal <span className="text-[10px] text-slate-400 font-normal">/ {item.unit}</span>
+                  </span>
+                </li>
+              ))}
+            </ul>
           )}
-        </span>
-        <span className="text-brandOrange font-bold">
-          {item.cal} kcal <span className="text-[10px] text-slate-400 font-normal">/ {item.unit}</span>
-        </span>
-      </li>
-    ))}
-  </ul>
-)}
         </div>
 
-        {/* Quick Shortcut Badges */}
+        {/* Quick Badges */}
         <div className="flex flex-wrap gap-1.5 mb-5">
           {QUICK_FOODS.map((q, idx) => (
             <button
               key={idx}
               type="button"
-              onClick={() => handleQuickAdd(q.text)}
-              className="text-[11px] px-2.5 py-1.5 rounded-full bg-slate-100 dark:bg-slate-800/60 hover:bg-orange-500/10 hover:text-brandOrange text-slate-600 dark:text-slate-300 border border-slate-200/60 dark:border-slate-700/60 transition"
+              onClick={() => {
+                setFoodQuery(q.text);
+                handleAIAnalyze(q.text);
+              }}
+              className="text-[11px] px-2.5 py-1.5 rounded-full bg-slate-100 dark:bg-slate-800/60 hover:text-brandOrange text-slate-600 dark:text-slate-300 border border-slate-200/60 dark:border-slate-700/60 transition"
             >
               {q.label}
             </button>
           ))}
         </div>
 
-        {/* Nutrition Result Card */}
+        {/* Relevant Food Matches */}
+        {relevantItems.length > 0 && (
+          <div className="mb-4 p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 animate-in fade-in duration-200">
+            <div className="flex items-center gap-1.5 text-xs font-bold text-brandOrange mb-2.5">
+              <ListPlus className="w-4 h-4" />
+              <span>{lang === 'bn' ? 'প্রাসঙ্গিক খাবারগুলো থেকে বেছে নিন:' : 'Choose from relevant matches:'}</span>
+            </div>
+            <div className="space-y-2">
+              {relevantItems.map((rel, idx) => (
+                <div
+                  key={idx}
+                  onClick={() => handlePickRelevantFood(rel)}
+                  className="p-2.5 rounded-xl bg-white dark:bg-slate-800/90 border border-slate-200/60 dark:border-slate-700/60 flex items-center justify-between hover:border-brandOrange cursor-pointer active:scale-98 transition shadow-sm"
+                >
+                  <div>
+                    <h5 className="text-xs font-bold text-slate-800 dark:text-slate-200">{rel.displayName}</h5>
+                    <p className="text-[10px] text-slate-400">{rel.portion} • P: {rel.protein}g | C: {rel.carbs}g</p>
+                  </div>
+                  <div className="flex items-center gap-1.5 text-brandOrange text-xs font-bold">
+                    <span>+{rel.calories} kcal</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Nutrition Preview Card */}
         {aiPreview && (
           <div className="p-4 rounded-2xl bg-orange-500/10 border border-orange-500/25 mb-4 animate-in fade-in zoom-in-95">
             <div className="flex justify-between items-start mb-2">
@@ -262,11 +285,26 @@ export default function AddFoodModal({ isOpen, onClose, onAddFood, lang = 'bn' }
                 <p className="text-xs font-bold text-amber-400">{aiPreview.fat}g</p>
               </div>
             </div>
+{/* Clean Single Line Source Badge */}
+<div className="mt-3.5 px-3 py-2 rounded-xl bg-orange-500/10 border border-orange-500/20 text-[11px] font-medium text-brandOrange flex items-center gap-2">
+  {aiPreview.source === 'live_analyzed' ? (
+    <>
+      <Activity className="w-3.5 h-3.5 flex-shrink-0 text-brandOrange" />
+      <span>{lang === 'bn' ? 'লাইভ পুষ্টি বিশ্লেষণ (Live Analyzed Nutrition Value)' : 'Live Analyzed Nutrition Value'}</span>
+    </>
+  ) : (
+    <>
+      <Database className="w-3.5 h-3.5 flex-shrink-0 text-brandOrange" />
+      <span>{lang === 'bn' ? 'ভেরিফায়েড পুষ্টি ডাটাবেস থেকে প্রাপ্ত' : 'Verified Food Database Record'}</span>
+    </>
+  )}
+</div>
 
+            {/* Confirm Button */}
             <button
               type="button"
               onClick={handleConfirmAdd}
-              className="w-full mt-4 py-3 rounded-xl bg-teal-600 hover:bg-teal-700 text-white font-medium text-xs flex items-center justify-center gap-1.5 shadow-md active:scale-95 transition"
+              className="w-full mt-3.5 py-3 rounded-xl bg-teal-600 hover:bg-teal-700 text-white font-medium text-xs flex items-center justify-center gap-1.5 shadow-md active:scale-95 transition"
             >
               <Check className="w-4 h-4" />
               <span>{lang === 'bn' ? 'তালিকায় যোগ করুন' : 'Confirm & Log Food'}</span>
