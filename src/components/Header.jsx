@@ -35,11 +35,11 @@ export default function Header({
 
   return (
     <>
-      {/* Sleek Compact Sticky Navbar */}
-      <header className="sticky top-0 z-40 w-full bg-slate-900/60 dark:bg-[#0B1120]/75 backdrop-blur-md border-b border-slate-200/20 dark:border-slate-800/60 transition-colors">
+      {/* 100% Solid Crisp Navbar: Pure White in Day Mode & Deep Navy in Dark Mode */}
+      <header className="sticky top-0 z-40 w-full bg-white dark:bg-[#0B1120] border-b border-slate-200 dark:border-slate-800 shadow-sm transition-colors">
         <div className="max-w-md mx-auto px-4 py-2.5 flex items-center justify-between">
           
-          {/* Left: Clean Brand Title & Daily Target */}
+          {/* Left: Brand Title & Daily Target */}
           <div className="flex flex-col">
             <div className="flex items-center gap-1.5">
               <h1 className="text-sm sm:text-[15px] font-bold tracking-tight text-slate-900 dark:text-white leading-tight">
@@ -47,13 +47,13 @@ export default function Header({
               </h1>
               
               {/* Streak Badge */}
-              <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-md bg-orange-500/10 border border-orange-500/20 text-brandOrange text-[10px] font-semibold">
+              <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-md bg-orange-100 dark:bg-orange-500/10 border border-orange-200 dark:border-orange-500/20 text-brandOrange text-[10px] font-bold">
                 <Flame className="w-2.5 h-2.5 fill-brandOrange text-brandOrange" />
                 <span>1</span>
               </span>
             </div>
 
-            <p className="text-[10px] sm:text-[11px] font-medium text-slate-400 mt-0.5 flex items-center gap-1">
+            <p className="text-[10px] sm:text-[11px] font-medium text-slate-500 dark:text-slate-400 mt-0.5 flex items-center gap-1">
               <span>{txt.dailyTarget}:</span>
               <span className="font-bold text-brandOrange">
                 {profile?.dailyCalorieTarget || 2897}
@@ -62,7 +62,7 @@ export default function Header({
             </p>
           </div>
 
-          {/* Right: Controls (Language -> Color/Theme -> Hamburger Menu) */}
+          {/* Right: Controls (Language -> Theme -> Hamburger Menu) */}
           <div className="flex items-center gap-1.5">
             {/* 1. Language Switcher */}
             <button 
@@ -75,27 +75,27 @@ export default function Header({
                 }
               }}
               title="Switch Language"
-              className="h-8 px-2.5 flex items-center gap-1 rounded-lg bg-slate-200/50 dark:bg-slate-800/50 border border-slate-300/40 dark:border-slate-700/50 text-slate-700 dark:text-slate-300 text-[11px] font-semibold hover:border-brandOrange/40 active:scale-95 transition"
+              className="h-8 px-2.5 flex items-center gap-1 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-200 text-[11px] font-bold active:scale-95 transition"
             >
               <Globe className="w-3 h-3 text-brandOrange" />
               <span>{lang === 'bn' ? 'বাংলা' : 'EN'}</span>
             </button>
 
-            {/* 2. Theme / Color Change Toggle */}
+            {/* 2. Theme Toggle */}
             <button 
               type="button"
               onClick={() => setDarkMode(!darkMode)}
               title="Switch Theme"
-              className="w-8 h-8 flex items-center justify-center rounded-lg bg-slate-200/50 dark:bg-slate-800/50 border border-slate-300/40 dark:border-slate-700/50 text-amber-500 dark:text-amber-400 hover:border-amber-400/40 active:scale-95 transition"
+              className="w-8 h-8 flex items-center justify-center rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 text-amber-500 dark:text-amber-400 active:scale-95 transition"
             >
               {darkMode ? <Sun className="w-3.5 h-3.5" /> : <Moon className="w-3.5 h-3.5 text-slate-700" />}
             </button>
 
-            {/* 3. Hamburger Menu Button (Positioned after Color Change) */}
+            {/* 3. Hamburger Menu Button */}
             <button
               type="button"
               onClick={() => setMenuOpen(true)}
-              className="w-8 h-8 flex items-center justify-center rounded-lg bg-slate-200/50 dark:bg-slate-800/50 border border-slate-300/40 dark:border-slate-700/50 text-slate-700 dark:text-slate-300 hover:border-brandOrange/40 active:scale-95 transition"
+              className="w-8 h-8 flex items-center justify-center rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 active:scale-95 transition"
               aria-label="Open Menu"
             >
               <Menu className="w-4 h-4" />
@@ -125,7 +125,6 @@ export default function Header({
                     <span className="text-sm font-bold text-slate-900 dark:text-white block">
                       {txt.appTitle}
                     </span>
-                    <span className="text-[10px] text-slate-400 font-medium">Navigation Menu</span>
                   </div>
                 </div>
                 <button 
