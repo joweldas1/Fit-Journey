@@ -1,20 +1,11 @@
 import FOOD_MASTER_DB from './food';
 
-// 1. API Key Clean Retrieval
 const rawApiKey = import.meta.env.VITE_GEMINI_API_KEY || "";
 const cleanApiKey = rawApiKey.replace(/["';\s]/g, "").trim();
 
-// আপনার ড্রপডাউনে থাকা ৩.৮ ফ্ল্যাশ এবং ৩.৫ ফ্ল্যাশ-লাইট মডেলগুলো সবার আগে রাখা হলো
-const MODELS_TO_TRY = [
-  "gemini-3.8-flash",
-  "3.8-flash",
-  "gemini-3.5-flash-lite",
-  "3.5-flash-lite",
-  "gemini-3.1-pro",
-  "3.1-pro",
-  "gemini-2.0-flash",
-  "gemini-1.5-flash"
-];
+// Shudhu verified working model gulo thakbe
+const PRIMARY_MODEL = "gemini-3.8-flash";
+const BACKUP_MODEL = "gemini-2.0-flash";
 
 function extractQuantity(text) {
   const clean = text.toLowerCase().trim();
@@ -37,18 +28,6 @@ function extractQuantity(text) {
   return 1;
 }
 
-function formatPortionAndTitle(item, detectedQty, isEnglish) {
-  const rawUnit = item.unit || 'plate';
-  const cleanUnit = rawUnit.replace(/^[\d.]+\s*/, '').trim() || 'plate';
-  const portionText = `${detectedQty} ${cleanUnit}`;
-  const itemName = isEnglish ? item.en : item.bn;
-
-  return {
-    name: itemName,
-    portion: portionText
-  };
-}
-
 function searchLocalFoods(normalizedQuery, detectedQty, isEnglish) {
   const exactMatch = FOOD_MASTER_DB.find(item => 
     normalizedQuery.includes(item.bn.toLowerCase()) || 
@@ -58,11 +37,12 @@ function searchLocalFoods(normalizedQuery, detectedQty, isEnglish) {
   );
 
   if (exactMatch) {
-    const formatted = formatPortionAndTitle(exactMatch, detectedQty, isEnglish);
+    const rawUnit = exactMatch.unit || 'plate';
+    const cleanUnit = rawUnit.replace(/^[\d.]+\s*/, '').trim() || 'plate';
     return {
       type: 'SINGLE_MATCH',
       data: {
-        name: formatted.name,
+        name: isEnglish ? exactMatch.en : exactMatch.bn,
         nameBn: exactMatch.bn,
         nameEn: exactMatch.en,
         foodId: exactMatch.id,
@@ -70,36 +50,51 @@ function searchLocalFoods(normalizedQuery, detectedQty, isEnglish) {
         protein: Math.round(exactMatch.p * detectedQty * 10) / 10,
         carbs: Math.round(exactMatch.c * detectedQty * 10) / 10,
         fat: Math.round(exactMatch.f * detectedQty * 10) / 10,
-        portion: formatted.portion,
+        portion: `${detectedQty} ${cleanUnit}`,
         source: 'local_database'
       }
     };
   }
+  return null;
+}
 
-  const tokens = normalizedQuery.split(/\s+/).filter(t => t.length > 1);
-  const relevantList = FOOD_MASTER_DB.filter(item => {
-    const itemText = `${item.bn} ${item.en}`.toLowerCase();
-    return tokens.some(token => itemText.includes(token));
-  }).slice(0, 5);
+// 4 Seconds Strict Fast Caller
+async function callGeminiFast(prompt) {
+  // 3.8-flash রাখা হলো এবং ফলব্যাক মডেল
+  const models = ["gemini-3.8-flash", "gemini-1.5-flash"];
+  
+  for (const model of models) {
+    const controller = new AbortController();
+    // ১০-১৫ সেকেন্ডের জন্য ১২ সেকেন্ড (12000ms) সেট করা হলো
+    const timeoutId = setTimeout(() => controller.abort(), 12000);
 
-  if (relevantList.length > 0) {
-    return {
-      type: 'MULTIPLE_SUGGESTIONS',
-      items: relevantList.map(item => {
-        const formatted = formatPortionAndTitle(item, detectedQty, isEnglish);
-        return {
-          ...item,
-          displayName: formatted.name,
-          portion: formatted.portion,
-          calories: Math.round(item.cal * detectedQty),
-          protein: Math.round(item.p * detectedQty * 10) / 10,
-          carbs: Math.round(item.c * detectedQty * 10) / 10,
-          fat: Math.round(item.f * detectedQty * 10) / 10
-        };
-      })
-    };
+    try {
+      const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${cleanApiKey}`;
+      const response = await fetch(endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] }),
+        signal: controller.signal
+      });
+
+      clearTimeout(timeoutId);
+
+      if (!response.ok) {
+        console.warn(`[${model}] returned HTTP ${response.status}`);
+        continue;
+      }
+
+      const data = await response.json();
+      const rawText = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+      if (rawText) {
+        const cleanJson = rawText.replace(/```json/gi, "").replace(/```/gi, "").trim();
+        return JSON.parse(cleanJson);
+      }
+    } catch (err) {
+      clearTimeout(timeoutId);
+      console.warn(`[${model}] skipped/timed out:`, err.name);
+    }
   }
-
   return null;
 }
 
@@ -107,140 +102,75 @@ export async function analyzeFoodWithAI(foodQuery, lang = 'en') {
   const isEnglish = lang === 'en';
   const normalizedQuery = foodQuery.toLowerCase().replace(/[-_–—,./\\]/g, ' ').replace(/\s+/g, ' ').trim();
 
+  const notFoundMsg = isEnglish ? "Your food was not found" : "আপনার খাবারটি পাওয়া যায় নি";
+  const retryMsg = isEnglish ? "Please try again after a minute." : "দয়া করে এক মিনিট পর আবার চেষ্টা করুন।";
+
   if (!normalizedQuery || normalizedQuery.length < 2) {
-    throw new Error(isEnglish ? "Please enter a valid food name." : "সঠিক খাবারের নাম লিখুন।");
+    throw new Error(notFoundMsg);
   }
 
   const detectedQty = extractQuantity(normalizedQuery);
-  const cacheKey = `fit_ai_v10_${lang}_${normalizedQuery}`;
+  const cacheKey = `fit_ai_fast_${lang}_${normalizedQuery}`;
 
-  // 1. Cache Check
+  // 1. Instant Cache Check (0 ms)
   const cachedData = localStorage.getItem(cacheKey);
   if (cachedData) {
     try {
-      const parsed = JSON.parse(cachedData);
-      console.log("⚡ Found in Cache:", parsed.name);
-      return { type: 'SINGLE_MATCH', data: parsed };
-    } catch (e) {
-      console.warn("Cache parse error", e);
-    }
+      return { type: 'SINGLE_MATCH', data: JSON.parse(cachedData) };
+    } catch (e) {}
   }
 
-  // 2. Direct REST Call with 3.8 / 3.5 Models
+  // 2. Ultra-compact Human Food Guard Prompt
+  const targetLang = isEnglish ? "English" : "Bengali";
+  const prompt = `Human Food Checker: "${foodQuery}".
+Rule: If NOT edible food/drink prepared for human consumption (e.g. animal, tool, furniture, cloth, trash, gibberish), return EXACTLY: {"isFood":false}
+If edible food, return raw JSON:
+{"isFood":true,"name":"${targetLang} food name","nameBn":"Bengali name","nameEn":"English name","calories":number,"protein":number,"carbs":number,"fat":number,"portion":"${detectedQty} serving"}
+Raw JSON only. No markdown.`;
+
+  // 3. Fast Call (Max 4 seconds)
+  let liveData = null;
   if (cleanApiKey) {
-    const targetLang = isEnglish ? "English" : "Bengali";
-// Target prompt with strict non-food detection
-    const prompt = `
-      You are an accurate clinical dietitian nutritional calculator.
-      Analyze this user input: "${foodQuery}".
+    liveData = await callGeminiFast(prompt);
+  }
 
-      CRITICAL RULE:
-      Determine if this input is a real edible food, meal, beverage, or grocery item meant for human consumption.
-      If it is NOT food (e.g. furniture like table/chair, electronics, animals, toys, random objects, toxic substances), set "isFood": false.
+  // Handle AI Response
+  if (liveData) {
+    // Non-food / inedible item reject
+    if (liveData.isFood === false) {
+      throw new Error(notFoundMsg);
+    }
 
-      If it IS food, set "isFood": true.
+    if (liveData.calories || liveData.calories === 0) {
+      const cleanName = (liveData.name || foodQuery)
+        .replace(/^[\d.]+\s*(plate|pc|টি|প্লেট|বাটি|cup|bowl|glass)\s*/i, '')
+        .trim();
 
-      Return STRICT valid JSON without markdown or backticks:
-      {
-        "isFood": boolean,
-        "name": "Food name in ${targetLang}",
-        "nameBn": "Food name in Bengali",
-        "nameEn": "Food name in English",
-        "calories": number,
-        "protein": number,
-        "carbs": number,
-        "fat": number,
-        "portion": "${detectedQty} portion"
-      }
-    `;
+      const res = {
+        name: cleanName,
+        nameBn: liveData.nameBn || cleanName,
+        nameEn: liveData.nameEn || cleanName,
+        calories: Math.round(Number(liveData.calories)),
+        protein: Math.round((Number(liveData.protein) || 0) * 10) / 10,
+        carbs: Math.round((Number(liveData.carbs) || 0) * 10) / 10,
+        fat: Math.round((Number(liveData.fat) || 0) * 10) / 10,
+        portion: liveData.portion || `${detectedQty} serving`,
+        source: 'live_analyzed'
+      };
 
-  for (const model of MODELS_TO_TRY) {
-      try {
-        console.log(`📡 Calling Gemini AI with [${model}]...`);
-        const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${cleanApiKey}`;
-
-        const response = await fetch(endpoint, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            contents: [{ parts: [{ text: prompt }] }]
-          })
-        });
-
-        // ১. রেসপন্স সফল হয়েছে কি না চেক
-        if (!response.ok) {
-          console.warn(`Model ${model} returned HTTP ${response.status}`);
-          continue;
-        }
-
-        // ২. ডাটা রিসিভ ও ক্লিন করা
-        const data = await response.json();
-        const rawText = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-
-        if (rawText) {
-          const cleanJson = rawText.replace(/```json/gi, "").replace(/```/gi, "").trim();
-          const liveData = JSON.parse(cleanJson);
-
-          // ৩. এইখানে বসবে লাইভ ডাটা ও Non-food গার্ড
-          if (liveData) {
-            // খাবার না হলে এরর থ্রো করবে
-            if (liveData.isFood === false) {
-              throw new Error(isEnglish ? "This is not an edible food item!" : "এটি কোনো খাবার নয়! সঠিক খাবারের নাম লিখুন।");
-            }
-
-            if (liveData.calories || liveData.calories === 0) {
-              const cleanName = (liveData.name || foodQuery)
-                .replace(/^[\d.]+\s*(plate|pc|টি|প্লেট|বাটি|cup|bowl|glass)\s*/i, '')
-                .trim();
-
-              const res = {
-                name: cleanName,
-                nameBn: liveData.nameBn || cleanName,
-                nameEn: liveData.nameEn || cleanName,
-                calories: Math.round(Number(liveData.calories)),
-                protein: Math.round((Number(liveData.protein) || 0) * 10) / 10,
-                carbs: Math.round((Number(liveData.carbs) || 0) * 10) / 10,
-                fat: Math.round((Number(liveData.fat) || 0) * 10) / 10,
-                portion: liveData.portion || `${detectedQty} serving`,
-                source: 'live_analyzed'
-              };
-
-              localStorage.setItem(cacheKey, JSON.stringify(res));
-              console.log(`🎉 Success using Model [${model}]:`, res);
-              return { type: 'SINGLE_MATCH', data: res };
-            }
-          }
-        }
-      } catch (err) {
-        // খাবার না হলে সরাসরি বাইরে এরর পাস করবে যেন লাল টোস্ট দেখায়
-        if (err.message && (err.message.includes("খাবার নয়") || err.message.includes("not an edible"))) {
-          throw err;
-        }
-        console.warn(`Attempt failed for ${model}:`, err);
-      }
+      localStorage.setItem(cacheKey, JSON.stringify(res));
+      return { type: 'SINGLE_MATCH', data: res };
     }
   }
 
-  // 3. Fallback to Local 700 DB
-  console.warn("⚠️ AI Models unavailable, loading from 700 Local Database...");
-  const localResult = searchLocalFoods(normalizedQuery, detectedQty, isEnglish);
-  if (localResult) {
-    return localResult;
+  // 4. Fallback to Local 700 DB
+  const localMatch = searchLocalFoods(normalizedQuery, detectedQty, isEnglish);
+  if (localMatch) {
+    return localMatch;
   }
 
-  // 4. Default Suggestions
-  return {
-    type: 'MULTIPLE_SUGGESTIONS',
-    items: FOOD_MASTER_DB.slice(0, 4).map(item => {
-      const formatted = formatPortionAndTitle(item, detectedQty, isEnglish);
-      return {
-        ...item,
-        displayName: formatted.name,
-        portion: formatted.portion,
-        calories: item.cal
-      };
-    })
-  };
+  // 5. AI fail + local DB-te na thakle retry error
+  throw new Error(retryMsg);
 }
 
 export async function analyzeExerciseWithAI(exerciseQuery, lang = 'en') {
@@ -252,5 +182,102 @@ export async function analyzeExerciseWithAI(exerciseQuery, lang = 'en') {
     effortLevel: isEnglish ? "Moderate" : "মাঝারি",
     aiFeedback: isEnglish ? "Great consistency! Keep going." : "ধারাবাহিকতা বজায় রাখুন!",
     source: 'local_rules'
+  };
+}
+
+
+
+// AI-Powered Personalized Onboarding Calorie Target Calculator
+export async function calculateUserCaloriePlanWithAI(data, lang = 'bn') {
+  const isEnglish = lang === 'en';
+  
+  // অতি সংক্ষিপ্ত ও ক্লিন প্রম্পট (১-২ সেকেন্ডের দ্রুত উত্তরের জন্য)
+  const prompt = `Dietitian Calculator: Calculate personalized daily calorie intake.
+Metrics:
+- Gender: ${data.gender}
+- Age: ${data.age} yrs
+- Height: ${data.heightFeet}ft ${data.heightInches}in (${data.heightCm}cm)
+- Current Weight: ${data.currentWeight}kg
+- Target Weight: ${data.targetWeight}kg
+- Target Duration: ${data.durationMonths} months
+- Profession / Activity: ${data.profession}
+- Daily Work Hours: ${data.workHours} hours/day
+
+Return STRICT JSON only, no markdown:
+{
+  "dailyCalorieTarget": number,
+  "tdee": number,
+  "bmr": number,
+  "dailySurplus": number,
+  "macros": {
+    "protein": number,
+    "carbs": number,
+    "fat": number
+  },
+  "adviceBn": "1 concise sentence in Bengali about this specific work-routine diet",
+  "adviceEn": "1 concise sentence in English about this specific work-routine diet"
+}`;
+
+  try {
+    const aiData = await callGeminiFast(prompt);
+    if (aiData && aiData.dailyCalorieTarget) {
+      return {
+        dailyCalorieTarget: Math.round(Number(aiData.dailyCalorieTarget)),
+        tdee: Math.round(Number(aiData.tdee) || (Number(aiData.dailyCalorieTarget) - 500)),
+        bmr: Math.round(Number(aiData.bmr) || 1600),
+        dailySurplus: Math.round(Number(aiData.dailySurplus) || 500),
+        macros: {
+          protein: Math.round(Number(aiData.macros?.protein) || 120),
+          carbs: Math.round(Number(aiData.macros?.carbs) || 350),
+          fat: Math.round(Number(aiData.macros?.fat) || 60)
+        },
+        advice: isEnglish ? aiData.adviceEn : aiData.adviceBn,
+        source: 'gemini_ai_personalized'
+      };
+    }
+  } catch (err) {
+    console.warn("AI Onboarding calculation failed, falling back to local formulas:", err);
+  }
+
+  // ফেইলসেফ ফলব্যাক: অফলাইন সায়েন্টিফিক ফর্মুলা (Mifflin-St Jeor)
+  const isMale = data.gender === 'male';
+  const weightKg = Number(data.currentWeight);
+  const heightCm = Number(data.heightCm);
+  const age = Number(data.age);
+
+  // BMR
+  let bmr = (10 * weightKg) + (6.25 * heightCm) - (5 * age) + (isMale ? 5 : -161);
+
+  // Activity multiplier based on profession & work hours
+  let activityMultiplier = 1.2;
+  const hours = Number(data.workHours) || 8;
+  
+  if (data.profession.includes('heavy') || data.profession.includes('ভারী')) {
+    activityMultiplier = hours > 8 ? 1.75 : 1.6;
+  } else if (data.profession.includes('moderate') || data.profession.includes('field') || data.profession.includes('মাঝারি')) {
+    activityMultiplier = hours > 8 ? 1.55 : 1.45;
+  } else if (data.profession.includes('light') || data.profession.includes('হালকা')) {
+    activityMultiplier = 1.35;
+  } else {
+    activityMultiplier = 1.2; // Sedentary / Desk
+  }
+
+  const tdee = Math.round(bmr * activityMultiplier);
+  const targetDiff = Number(data.targetWeight) - weightKg;
+  const surplusDeficit = Math.round((targetDiff * 7700) / (Number(data.durationMonths) * 30));
+  const dailyTarget = Math.max(tdee + surplusDeficit, 1400);
+
+  return {
+    dailyCalorieTarget: dailyTarget,
+    tdee,
+    bmr: Math.round(bmr),
+    dailySurplus: surplusDeficit,
+    macros: {
+      protein: Math.round(weightKg * (isMale ? 2.0 : 1.7)),
+      fat: Math.round((dailyTarget * 0.25) / 9),
+      carbs: Math.round((dailyTarget - (weightKg * 2.0 * 4) - ((dailyTarget * 0.25))) / 4)
+    },
+    advice: isEnglish ? "Consistent calorie intake and adequate rest will yield the best results." : "নিয়মিত পর্যাপ্ত ক্যালোরি গ্রহণ ও বিশ্রাম আপনার লক্ষ্যে পৌঁছাতে সাহায্য করবে।",
+    source: 'local_scientific_formula'
   };
 }

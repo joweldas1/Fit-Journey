@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Toaster, toast } from 'sonner';
-import { Dumbbell, AlertTriangle, Timer, Plus, Bell, BellRing } from 'lucide-react';
+import { Dumbbell, AlertTriangle, Timer, Plus } from 'lucide-react';
 import Header from './components/Header';
 import OnboardingModal from './components/OnboardingModal';
 import CalorieGauge from './components/CalorieGauge';
@@ -9,7 +9,20 @@ import LogExerciseModal from './components/LogExerciseModal';
 import DailyCalorieView from './components/DailyCalorieView';
 import GlobalCalendarView from './components/GlobalCalendarView';
 import { t } from './utils/translations';
-import { requestNotificationPermission, checkNotificationPermission, sendCalorieNotification } from './utils/notifier';
+import MotivationalQuote from './components/MotivationalQuote';
+import { 
+  requestNotificationPermission, 
+  checkNotificationPermission, 
+  sendSmartNotification 
+} from './utils/notifier';
+
+// টাইমজোন-সঠিক লোকাল ডেট কি (UTC অফসেট বাগ মুক্ত)
+const getLocalDateKey = (d = new Date()) => {
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
 
 export default function App() {
   const [darkMode, setDarkMode] = useState(true);
@@ -22,7 +35,8 @@ export default function App() {
   const [isExerciseOpen, setIsExerciseOpen] = useState(false);
   const [isNotifActive, setIsNotifActive] = useState(false);
 
-  const todayKey = new Date().toISOString().split('T')[0];
+  const todayKey = getLocalDateKey();
+  
   const [foods, setFoods] = useState(() => {
     const saved = localStorage.getItem(`fit_foods_${todayKey}`);
     return saved ? JSON.parse(saved) : [];
@@ -36,7 +50,6 @@ export default function App() {
   const [showResetCountdown, setShowResetCountdown] = useState(false);
   const [timeLeft, setTimeLeft] = useState(120);
 
-  // Sync profile from localStorage & check notification status
   useEffect(() => {
     const saved = localStorage.getItem('fit_profile');
     if (saved) {
@@ -49,7 +62,6 @@ export default function App() {
     setIsNotifActive(checkNotificationPermission());
   }, []);
 
-  // Theme Sync
   useEffect(() => {
     if (darkMode) {
       document.documentElement.classList.add('dark');
@@ -58,7 +70,6 @@ export default function App() {
     }
   }, [darkMode]);
 
-  // Persist Foods & Exercises
   useEffect(() => {
     localStorage.setItem(`fit_foods_${todayKey}`, JSON.stringify(foods));
   }, [foods, todayKey]);
@@ -67,9 +78,7 @@ export default function App() {
     localStorage.setItem(`fit_exercises_${todayKey}`, JSON.stringify(exercises));
   }, [exercises, todayKey]);
 
-  // -------------------------------------------------------------
-  // HOURLY NOTIFICATION SYSTEM (CLIENT LANGUAGE BINDING)
-  // -------------------------------------------------------------
+  // Notification Engine
   const foodsRef = useRef(foods);
   const profileRef = useRef(profile);
   const langRef = useRef(lang);
@@ -77,29 +86,51 @@ export default function App() {
   useEffect(() => {
     foodsRef.current = foods;
     profileRef.current = profile;
-    langRef.current = lang; // Client bhasha bodlale instantly update hobe
+    langRef.current = lang;
   }, [foods, profile, lang]);
 
+  const triggerEvaluatedNotification = (isManualTest = false) => {
+    const curTarget = profileRef.current?.dailyCalorieTarget || 2897;
+    const curConsumed = foodsRef.current.reduce((acc, f) => acc + (f.calories || 0), 0);
+    const curLang = langRef.current;
+    const userName = profileRef.current?.name || '';
+
+    let notifType = 'HOURLY_UPDATE';
+
+    if (curConsumed === 0) {
+      notifType = 'NO_FOOD_LOGGED';
+    } else if (curConsumed >= curTarget && curConsumed <= curTarget + 300) {
+      notifType = 'TARGET_REACHED';
+    } else if (curConsumed > curTarget + 300) {
+      notifType = 'EXCEEDED_GOAL';
+    } else if (curConsumed < curTarget * 0.5) {
+      notifType = 'BEHIND_SCHEDULE';
+    } else {
+      notifType = 'ON_TRACK';
+    }
+
+    sendSmartNotification({
+      type: notifType,
+      consumed: curConsumed,
+      target: curTarget,
+      lang: curLang,
+      userName
+    });
+  };
+
   useEffect(() => {
+    const ONE_HOUR_MS = 60 * 60 * 1000;
+
     const checkAndNotify = () => {
-      const currentHour = new Date().getHours();
-      const lastHour = localStorage.getItem('fit_last_notified_hour');
+      const lastSentTime = parseInt(localStorage.getItem('fit_last_notified_timestamp') || '0', 10);
+      const now = Date.now();
 
-      if (lastHour !== String(currentHour)) {
-        const curTarget = profileRef.current?.dailyCalorieTarget || 2897;
-        const curConsumed = foodsRef.current.reduce((acc, f) => acc + (f.calories || 0), 0);
-
-        sendCalorieNotification({
-          consumed: curConsumed,
-          target: curTarget,
-          lang: langRef.current // Realtime client language pass hocche
-        });
-
-        localStorage.setItem('fit_last_notified_hour', String(currentHour));
+      if (now - lastSentTime >= ONE_HOUR_MS) {
+        triggerEvaluatedNotification();
+        localStorage.setItem('fit_last_notified_timestamp', String(now));
       }
     };
 
-    checkAndNotify();
     const interval = setInterval(checkAndNotify, 60 * 1000);
     return () => clearInterval(interval);
   }, []);
@@ -108,24 +139,16 @@ export default function App() {
     const granted = await requestNotificationPermission();
     if (granted) {
       setIsNotifActive(true);
-      toast.success(lang === 'bn' ? 'ঘণ্টার নোটিফিকেশন চালু হয়েছে!' : 'Hourly notifications enabled!');
-      
-      const curTarget = profile?.dailyCalorieTarget || 2897;
-      const curConsumed = foods.reduce((acc, f) => acc + (f.calories || 0), 0);
-      
-      // Instant test push matching chosen language
-      sendCalorieNotification({
-        consumed: curConsumed,
-        target: curTarget,
-        lang
-      });
+      toast.success(lang === 'bn' ? 'স্মার্ট নোটিফিকেশন চালু হয়েছে! (১ ঘণ্টা পর পর আপডেট পাবেন)' : 'Smart notifications active! (Hourly updates)');
+      triggerEvaluatedNotification(true);
+      localStorage.setItem('fit_last_notified_timestamp', String(Date.now()));
     } else {
       setIsNotifActive(false);
-      toast.error(lang === 'bn' ? 'নোটিফিকেশন পারমিশন দেওয়া হয়নি' : 'Notification permission was denied');
+      toast.error(lang === 'bn' ? 'ব্রাউজার সেটিংস থেকে নোটিফিকেশন Allow করুন' : 'Please allow notification from browser settings');
     }
   };
 
-  // 2 Minutes Reset Countdown Timer
+  // Reset Countdown
   useEffect(() => {
     let timerId;
     if (showResetCountdown && timeLeft > 0) {
@@ -138,7 +161,23 @@ export default function App() {
   }, [showResetCountdown, timeLeft, lang]);
 
   const handleAddFood = (foodItem) => {
-    setFoods((prev) => [{ ...foodItem, id: Date.now() }, ...prev]);
+    setFoods((prev) => {
+      const updated = [{ ...foodItem, id: Date.now() }, ...prev];
+      const curTarget = profile?.dailyCalorieTarget || 2897;
+      const prevTotal = prev.reduce((acc, f) => acc + (f.calories || 0), 0);
+      const totalCal = updated.reduce((acc, f) => acc + (f.calories || 0), 0);
+
+      if (totalCal >= curTarget && prevTotal < curTarget) {
+        sendSmartNotification({
+          type: 'TARGET_REACHED',
+          consumed: totalCal,
+          target: curTarget,
+          lang,
+          userName: profile?.name || ''
+        });
+      }
+      return updated;
+    });
   };
 
   const handleDeleteFood = (id) => {
@@ -172,7 +211,7 @@ export default function App() {
   const burnedCalories = exercises.reduce((acc, e) => acc + (e.caloriesBurned || 0), 0);
 
   return (
-    <div className={`min-h-screen w-full transition-colors duration-300 ${darkMode ? 'bg-darkBg text-slate-100' : 'bg-slate-50 text-slate-800'}`}>
+    <div className={`h-[100dvh] max-h-[100dvh] w-full overflow-hidden flex flex-col transition-colors duration-300 ${darkMode ? 'bg-[#0b1120] text-slate-100' : 'bg-slate-50 text-slate-800'}`}>
       
       <Toaster position="top-center" richColors theme={darkMode ? 'dark' : 'light'} />
 
@@ -255,56 +294,32 @@ export default function App() {
         onTriggerReset={() => { setTimeLeft(120); setShowResetCountdown(true); }}
         activeTab={activeTab}
         setActiveTab={setActiveTab}
+        isNotifActive={isNotifActive}
+        onToggleNotification={handleToggleNotification}
       />
 
-      {/* Full-Screen Edge-to-Edge Container */}
-      <main className="w-full max-w-md mx-auto min-h-[calc(100vh-65px)] flex flex-col justify-between px-4 sm:px-6 pt-3 pb-6">
+      {/* Main Single Locked Container */}
+      <main className="flex-1 w-full max-w-md mx-auto flex flex-col overflow-hidden px-4 sm:px-6 pt-2 pb-4">
         
-        {/* Tab 1: Dashboard */}
+        {/* Tab 1: Dashboard (Single clean layout) */}
         {activeTab === 'journey' && (
-          <div className="flex-1 flex flex-col justify-between py-2 animate-in fade-in duration-300">
+          <div className="flex-1 flex flex-col justify-between overflow-hidden animate-in fade-in duration-200">
             
-            {/* Gauge Section */}
-            <div className="flex-1 flex flex-col items-center justify-center py-4">
+            {/* Top: Calorie Gauge */}
+            <div className="flex-1 flex flex-col items-center justify-center min-h-0 py-1">
               <CalorieGauge consumed={consumedCalories} target={targetCalories} lang={lang} />
-              
-              {/* Sleek Notification Status Pill (ON/OFF Design) */}
-              <div className="mt-3">
-                <button
-                  type="button"
-                  onClick={handleToggleNotification}
-                  className={`inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-medium border transition-all active:scale-95 shadow-sm ${
-                    isNotifActive
-                      ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/30 dark:bg-emerald-500/15'
-                      : 'bg-white/80 dark:bg-slate-800/80 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700/80 hover:border-brandOrange/40'
-                  }`}
-                >
-                  {isNotifActive ? (
-                    <>
-                      <span className="relative flex h-2 w-2">
-                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                        <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-                      </span>
-                      <BellRing className="w-3.5 h-3.5 text-emerald-500" />
-                      <span>{lang === 'bn' ? 'ঘণ্টার নোটিফিকেশন চালু আছে' : 'Hourly Alerts Active'}</span>
-                    </>
-                  ) : (
-                    <>
-                      <Bell className="w-3.5 h-3.5 text-brandOrange" />
-                      <span>{lang === 'bn' ? 'ঘণ্টার নোটিফিকেশন চালু করুন' : 'Enable Hourly Alerts'}</span>
-                    </>
-                  )}
-                </button>
-              </div>
             </div>
 
-            {/* Bottom Controls */}
-            <div className="space-y-4 w-full">
-              <div className="grid grid-cols-2 gap-3.5 w-full">
+            {/* Middle: Minimal Clean Motivational Quote */}
+            <MotivationalQuote lang={lang} />
+
+            {/* Bottom: Action Buttons & Status Dock */}
+            <div className="space-y-3 w-full shrink-0">
+              <div className="grid grid-cols-2 gap-3 w-full">
                 <button 
                   type="button"
                   onClick={() => setIsAddFoodOpen(true)}
-                  className="flex items-center justify-center gap-2 py-4 px-4 rounded-2xl bg-gradient-to-r from-brandOrange via-orange-500 to-amber-500 hover:opacity-95 text-white font-bold text-sm shadow-xl shadow-orange-500/25 active:scale-95 transition-all"
+                  className="flex items-center justify-center gap-2 py-3.5 px-4 rounded-2xl bg-gradient-to-r from-brandOrange via-orange-500 to-amber-500 hover:opacity-95 text-white font-bold text-sm shadow-lg shadow-orange-500/25 active:scale-95 transition-all"
                 >
                   <Plus className="w-4 h-4 stroke-[3]" />
                   <span>{txt.addFood}</span>
@@ -313,7 +328,7 @@ export default function App() {
                 <button 
                   type="button"
                   onClick={() => setIsExerciseOpen(true)}
-                  className="flex items-center justify-center gap-2 py-4 px-4 rounded-2xl bg-white/5 dark:bg-darkCard/90 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-800 dark:text-slate-200 border border-slate-200/80 dark:border-slate-800 font-semibold text-sm shadow-sm active:scale-95 transition-all"
+                  className="flex items-center justify-center gap-2 py-3.5 px-4 rounded-2xl bg-white/5 dark:bg-darkCard/90 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-800 dark:text-slate-200 border border-slate-200/80 dark:border-slate-800 font-semibold text-sm shadow-sm active:scale-95 transition-all"
                 >
                   <Dumbbell className="w-4 h-4 text-teal-400" />
                   <span>{txt.logExercise}</span>
@@ -321,18 +336,18 @@ export default function App() {
               </div>
 
               {/* Status Dock */}
-              <div className="w-full grid grid-cols-3 divide-x divide-slate-200/70 dark:divide-slate-800/80 bg-white/60 dark:bg-darkCard/80 border border-slate-200/80 dark:border-slate-800/80 rounded-2xl py-3.5 px-2 shadow-sm backdrop-blur-md text-center text-xs">
+              <div className="w-full grid grid-cols-3 divide-x divide-slate-200/70 dark:divide-slate-800/80 bg-white/60 dark:bg-darkCard/80 border border-slate-200/80 dark:border-slate-800/80 rounded-2xl py-3 px-2 shadow-sm backdrop-blur-md text-center text-xs">
                 <div>
                   <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider">{txt.goal}</span>
-                  <p className="font-extrabold text-slate-900 dark:text-white mt-1">{profile ? `${profile.currentWeight} ➔ ${profile.targetWeight} kg` : '--'}</p>
+                  <p className="font-extrabold text-slate-900 dark:text-white mt-0.5">{profile ? `${profile.currentWeight} ➔ ${profile.targetWeight} kg` : '--'}</p>
                 </div>
                 <div>
                   <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider">{txt.burned}</span>
-                  <p className="font-extrabold text-teal-500 dark:text-teal-400 mt-1">-{burnedCalories} kcal</p>
+                  <p className="font-extrabold text-teal-500 dark:text-teal-400 mt-0.5">-{burnedCalories} kcal</p>
                 </div>
                 <div>
                   <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider">{txt.mealsLogged}</span>
-                  <p className="font-extrabold text-brandOrange mt-1">{foods.length} {txt.items}</p>
+                  <p className="font-extrabold text-brandOrange mt-0.5">{foods.length} {txt.items}</p>
                 </div>
               </div>
 
@@ -343,21 +358,25 @@ export default function App() {
 
         {/* Tab 2: Calorie Target */}
         {activeTab === 'target' && profile && (
-          <DailyCalorieView 
-            profile={profile}
-            foods={foods}
-            onDeleteFood={handleDeleteFood}
-            onOpenAddFood={() => setIsAddFoodOpen(true)}
-            lang={lang}
-          />
+          <div className="flex-1 overflow-y-auto pr-1">
+            <DailyCalorieView 
+              profile={profile}
+              foods={foods}
+              onDeleteFood={handleDeleteFood}
+              onOpenAddFood={() => setIsAddFoodOpen(true)}
+              lang={lang}
+            />
+          </div>
         )}
 
         {/* Tab 3: Calendar */}
         {activeTab === 'analytics' && (
-          <GlobalCalendarView 
-            profile={profile}
-            lang={lang}
-          />
+          <div className="flex-1 overflow-y-auto pr-1">
+            <GlobalCalendarView 
+              profile={profile}
+              lang={lang}
+            />
+          </div>
         )}
 
       </main>

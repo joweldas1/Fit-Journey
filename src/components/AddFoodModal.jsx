@@ -44,7 +44,6 @@ export default function AddFoodModal({ isOpen, onClose, onAddFood, lang = 'bn' }
 
         if (sortedFrequent.length > 0) {
           setHasFrequentHistory(true);
-          // 5-tar kom hole baki slot gulo default theke fillup hobe
           const remaining = DEFAULT_QUICK_FOODS.filter(
             def => !sortedFrequent.some(s => s.text === def.text)
           );
@@ -124,8 +123,12 @@ export default function AddFoodModal({ isOpen, onClose, onAddFood, lang = 'bn' }
       } else if (res.type === 'MULTIPLE_SUGGESTIONS') {
         setRelevantItems(res.items);
       }
-    } catch {
-      toast.error(lang === 'bn' ? 'বিশ্লেষণ করা যায়নি, ড্রপডাউন থেকে নির্বাচন করুন' : 'Analysis failed, select from list');
+    } catch (err) {
+      // Direct dynamic error message from gemini.js
+      const errorMsg = err.message || (lang === 'bn' ? 'আপনার খাবারটি পাওয়া যায় নি' : 'Your food was not found');
+      toast.error(errorMsg);
+      setAiPreview(null);
+      setRelevantItems([]);
     } finally {
       setLoading(false);
     }
@@ -148,7 +151,6 @@ export default function AddFoodModal({ isOpen, onClose, onAddFood, lang = 'bn' }
   const handleConfirmAdd = () => {
     if (!aiPreview) return;
     
-    // User food usage counter update
     try {
       const freqMap = JSON.parse(localStorage.getItem('fit_food_frequency') || '{}');
       const baseFoodName = aiPreview.name.trim();

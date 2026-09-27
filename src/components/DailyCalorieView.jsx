@@ -134,12 +134,7 @@ export default function DailyCalorieView({
               <span className="text-macroFat font-semibold">{lang === 'bn' ? 'ফ্যাট' : 'Fat'}</span>
               <span className="text-slate-400">{consumedFat}g / {targetFat}g</span>
             </div>
-            <div className="w-full h-2 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
-              <div 
-                className="h-full rounded-full bg-macroFat transition-all duration-500" 
-                style={{ width: `${Math.min((consumedFat / targetFat) * 100, 100)}%` }}
-              />
-            </div>
+        
           </div>
         </div>
       </div>
