@@ -6,10 +6,7 @@ import {
   TrendingUp, 
   Utensils, 
   Inbox, 
-  Flame, 
-  CheckCircle2, 
-  XCircle,
-  Clock
+  Flame
 } from 'lucide-react';
 import { toast } from 'sonner';
 

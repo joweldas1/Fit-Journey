@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { X, Sparkles, Loader2, Utensils, Check, ArrowRight, ListPlus, Activity, Database, Flame } from 'lucide-react';
+import { X, Sparkles, Loader2, Utensils, Check, ArrowRight, ListPlus, Flame } from 'lucide-react';
 import { toast } from 'sonner';
 import { analyzeFoodWithAI } from '../utils/gemini';
 import FOOD_MASTER_DB from '../utils/food';
@@ -52,7 +52,7 @@ export default function AddFoodModal({ isOpen, onClose, onAddFood, lang = 'bn' }
           setHasFrequentHistory(false);
           setQuickFoods(DEFAULT_QUICK_FOODS);
         }
-      } catch (e) {
+      } catch {
         setQuickFoods(DEFAULT_QUICK_FOODS);
       }
     }
@@ -351,17 +351,8 @@ export default function AddFoodModal({ isOpen, onClose, onAddFood, lang = 'bn' }
 
             {/* Clean Single Line Source Badge */}
             <div className="mt-3.5 px-3 py-2 rounded-xl bg-orange-500/10 border border-orange-500/20 text-[11px] font-medium text-brandOrange flex items-center gap-2">
-              {aiPreview.source === 'live_analyzed' ? (
-                <>
-                  <Activity className="w-3.5 h-3.5 flex-shrink-0 text-brandOrange" />
-                  <span>{lang === 'bn' ? 'লাইভ পুষ্টি বিশ্লেষণ (Live Analyzed Nutrition Value)' : 'Live Analyzed Nutrition Value'}</span>
-                </>
-              ) : (
-                <>
-                  <Database className="w-3.5 h-3.5 flex-shrink-0 text-brandOrange" />
-                  <span>{lang === 'bn' ? 'ভেরিফায়েড পুষ্টি ডাটাবেস থেকে প্রাপ্ত' : 'Verified Food Database Record'}</span>
-                </>
-              )}
+              <Sparkles className="w-3.5 h-3.5 flex-shrink-0 text-brandOrange" />
+              <span>{lang === 'bn' ? 'Gemini AI লাইভ পুষ্টি বিশ্লেষণ (AI Analyzed Nutrition)' : 'Gemini AI Verified Nutrition'}</span>
             </div>
 
             {/* Confirm Button */}

@@ -6,7 +6,6 @@ import {
   CheckCircle2, 
   Flame, 
   Sparkles, 
-  Target, 
   User, 
   Globe, 
   Moon, 
@@ -17,13 +16,11 @@ import {
   Loader2
 } from 'lucide-react';
 import { calculateUserCaloriePlanWithAI } from '../utils/gemini';
-import { t } from '../utils/translations';
 
 export default function OnboardingModal({ onComplete, darkMode, setDarkMode, initialLang = 'bn' }) {
   const [step, setStep] = useState(0);
   const [lang, setLang] = useState(initialLang);
   const [loadingAI, setLoadingAI] = useState(false);
-  const txt = t[lang] || t.bn;
 
   const [formData, setFormData] = useState({
     name: '',
@@ -161,7 +158,7 @@ export default function OnboardingModal({ onComplete, darkMode, setDarkMode, ini
           colors: ['#FF6B4A', '#0D7C66', '#38BDF8', '#FBBF24']
         });
       } catch {}
-    } catch (err) {
+    } catch {
       toast.error(lang === 'bn' ? 'হিসাব সম্পন্ন করা যায়নি, আবার চেষ্টা করুন' : 'Calculation failed, please try again');
     } finally {
       setLoadingAI(false);

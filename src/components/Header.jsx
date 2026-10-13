@@ -12,7 +12,8 @@ import {
   RotateCcw,
   Bell,
   BellRing,
-  Sparkles
+  Sparkles,
+  CalendarCheck
 } from 'lucide-react';
 
 export default function Header({
@@ -25,7 +26,8 @@ export default function Header({
   activeTab,
   setActiveTab,
   isNotifActive,
-  onToggleNotification
+  onToggleNotification,
+  onOpenDailyPlan
 }) {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
@@ -180,6 +182,26 @@ export default function Header({
                 </button>
               );
             })}
+
+            {/* Daily Plan Trigger */}
+            {onOpenDailyPlan && (
+              <button
+                type="button"
+                onClick={() => {
+                  setIsDrawerOpen(false);
+                  onOpenDailyPlan();
+                }}
+                className="w-full flex items-center justify-between px-3.5 py-3 rounded-2xl text-xs font-bold transition-all text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800/60 active:scale-[0.98]"
+              >
+                <div className="flex items-center gap-3">
+                  <CalendarCheck className="w-4 h-4 text-brandOrange" />
+                  <span>{isBn ? 'দৈনিক ক্যালোরি পরিকল্পনা (AI)' : "Daily Meal Plan (AI)"}</span>
+                </div>
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-orange-500/10 text-brandOrange border border-orange-500/20">
+                  New
+                </span>
+              </button>
+            )}
 
             {/* Notification Setting Row (সহজ, সুন্দর ১ লাইনের নরমাল মেনু আইটেম) */}
             <button

@@ -134,8 +134,8 @@ export async function sendSmartNotification({
   // মোবাইলের জন্য অপ্টিমাইজড কনফিগারেশন (উচ্চ প্রায়োরিটি ও ডিস্টিংক্ট ভাইব্রেশন)
   const options = {
     body,
-    icon: "/favicon.ico",
-    badge: "/favicon.ico",
+    icon: "/favicon.svg",
+    badge: "/favicon.svg",
     tag: "fit-hourly-status", // একই ট্যাগ থাকলে নোটিফিকেশন বার ক্লিন থাকবে
     renotify: true, // প্রতি ঘণ্টায় রিনোটিফাই হয়ে সাউন্ড/ভাইব্রেট করবে
     silent: false,

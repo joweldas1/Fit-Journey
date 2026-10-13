@@ -8,6 +8,7 @@ import AddFoodModal from './components/AddFoodModal';
 import LogExerciseModal from './components/LogExerciseModal';
 import DailyCalorieView from './components/DailyCalorieView';
 import GlobalCalendarView from './components/GlobalCalendarView';
+import DailyPlanModal from './components/DailyPlanModal';
 import { t } from './utils/translations';
 import MotivationalQuote from './components/MotivationalQuote';
 import { 
@@ -33,6 +34,7 @@ export default function App() {
 
   const [isAddFoodOpen, setIsAddFoodOpen] = useState(false);
   const [isExerciseOpen, setIsExerciseOpen] = useState(false);
+  const [isDailyPlanOpen, setIsDailyPlanOpen] = useState(false);
   const [isNotifActive, setIsNotifActive] = useState(false);
 
   const todayKey = getLocalDateKey();
@@ -47,20 +49,39 @@ export default function App() {
     return saved ? JSON.parse(saved) : [];
   });
 
+  const [dailyPlan, setDailyPlan] = useState(() => {
+    const saved = localStorage.getItem(`fit_daily_plan_${todayKey}`);
+    return saved ? JSON.parse(saved) : null;
+  });
+
   const [showResetCountdown, setShowResetCountdown] = useState(false);
   const [timeLeft, setTimeLeft] = useState(120);
 
+  // Initialize Profile, Notifications & Daily Plan Popup (Requirement D)
   useEffect(() => {
     const saved = localStorage.getItem('fit_profile');
     if (saved) {
-      const data = JSON.parse(saved);
-      setProfile(data);
-      if (data.lang) setLang(data.lang);
+      try {
+        const data = JSON.parse(saved);
+        setProfile(data);
+        if (data.lang) setLang(data.lang);
+
+        // Requirement D: Check if daily plan exists for today
+        const existingPlan = localStorage.getItem(`fit_daily_plan_${todayKey}`);
+        const dismissed = sessionStorage.getItem(`fit_daily_plan_dismissed_${todayKey}`);
+        if (!existingPlan && !dismissed) {
+          // Open morning/midnight daily plan popup
+          const timer = setTimeout(() => setIsDailyPlanOpen(true), 500);
+          return () => clearTimeout(timer);
+        }
+      } catch (e) {
+        console.warn("Failed to parse saved profile", e);
+      }
     } else {
       setShowOnboarding(true);
     }
     setIsNotifActive(checkNotificationPermission());
-  }, []);
+  }, [todayKey]);
 
   useEffect(() => {
     if (darkMode) {
@@ -89,7 +110,7 @@ export default function App() {
     langRef.current = lang;
   }, [foods, profile, lang]);
 
-  const triggerEvaluatedNotification = (isManualTest = false) => {
+  const triggerEvaluatedNotification = () => {
     const curTarget = profileRef.current?.dailyCalorieTarget || 2897;
     const curConsumed = foodsRef.current.reduce((acc, f) => acc + (f.calories || 0), 0);
     const curLang = langRef.current;
@@ -140,7 +161,7 @@ export default function App() {
     if (granted) {
       setIsNotifActive(true);
       toast.success(lang === 'bn' ? 'স্মার্ট নোটিফিকেশন চালু হয়েছে! (১ ঘণ্টা পর পর আপডেট পাবেন)' : 'Smart notifications active! (Hourly updates)');
-      triggerEvaluatedNotification(true);
+      triggerEvaluatedNotification();
       localStorage.setItem('fit_last_notified_timestamp', String(Date.now()));
     } else {
       setIsNotifActive(false);
@@ -148,7 +169,19 @@ export default function App() {
     }
   };
 
-  // Reset Countdown
+  // Safe Hoisted executeReset function (fixes linter initialization warning)
+  const executeReset = () => {
+    setShowResetCountdown(false);
+    localStorage.clear();
+    sessionStorage.clear();
+    setProfile(null);
+    setFoods([]);
+    setExercises([]);
+    setDailyPlan(null);
+    setShowOnboarding(true);
+  };
+
+  // Reset Countdown Effect
   useEffect(() => {
     let timerId;
     if (showResetCountdown && timeLeft > 0) {
@@ -189,13 +222,27 @@ export default function App() {
     setExercises((prev) => [{ ...workoutItem, id: Date.now() }, ...prev]);
   };
 
-  const executeReset = () => {
-    setShowResetCountdown(false);
-    localStorage.clear();
-    setProfile(null);
-    setFoods([]);
-    setExercises([]);
-    setShowOnboarding(true);
+  // Handle Daily Plan Apply (Requirement D)
+  const handleApplyDailyPlan = (newPlan) => {
+    setDailyPlan(newPlan);
+    localStorage.setItem(`fit_daily_plan_${todayKey}`, JSON.stringify(newPlan));
+
+    if (newPlan.dailyCalorieTarget) {
+      setProfile(prev => {
+        const updated = {
+          ...(prev || {}),
+          dailyCalorieTarget: newPlan.dailyCalorieTarget,
+          macros: newPlan.macros || prev?.macros
+        };
+        localStorage.setItem('fit_profile', JSON.stringify(updated));
+        return updated;
+      });
+    }
+  };
+
+  const handleCloseDailyPlan = () => {
+    setIsDailyPlanOpen(false);
+    sessionStorage.setItem(`fit_daily_plan_dismissed_${todayKey}`, 'true');
   };
 
   const formatTime = (seconds) => {
@@ -264,9 +311,20 @@ export default function App() {
             setProfile(newProfile);
             setLang(newProfile.lang || 'bn');
             setShowOnboarding(false);
+            // After onboarding, prompt for today's plan
+            setTimeout(() => setIsDailyPlanOpen(true), 500);
           }} 
         />
       )}
+
+      {/* Daily Plan Popup (Requirement D) */}
+      <DailyPlanModal
+        isOpen={isDailyPlanOpen}
+        onClose={handleCloseDailyPlan}
+        onApplyPlan={handleApplyDailyPlan}
+        lang={lang}
+        initialPlan={dailyPlan}
+      />
 
       {/* Add Food Modal */}
       <AddFoodModal 
@@ -296,25 +354,33 @@ export default function App() {
         setActiveTab={setActiveTab}
         isNotifActive={isNotifActive}
         onToggleNotification={handleToggleNotification}
+        onOpenDailyPlan={() => setIsDailyPlanOpen(true)}
       />
 
-      {/* Main Single Locked Container */}
-      <main className="flex-1 w-full max-w-md mx-auto flex flex-col overflow-hidden px-4 sm:px-6 pt-2 pb-4">
+      {/* Main Container - Smooth Mobile Responsive Layout (Fixes Quote Section Visibility) */}
+      <main className="flex-1 w-full max-w-md mx-auto flex flex-col overflow-y-auto px-4 sm:px-6 pt-2 pb-4">
         
-        {/* Tab 1: Dashboard (Single clean layout) */}
+        {/* Tab 1: Dashboard */}
         {activeTab === 'journey' && (
-          <div className="flex-1 flex flex-col justify-between overflow-hidden animate-in fade-in duration-200">
+          <div className="flex-1 flex flex-col justify-between gap-1 animate-in fade-in duration-200">
             
             {/* Top: Calorie Gauge */}
-            <div className="flex-1 flex flex-col items-center justify-center min-h-0 py-1">
+            <div className="flex flex-col items-center justify-center py-1 shrink-0">
               <CalorieGauge consumed={consumedCalories} target={targetCalories} lang={lang} />
             </div>
 
-            {/* Middle: Minimal Clean Motivational Quote */}
-            <MotivationalQuote lang={lang} />
+            {/* Middle: Guaranteed Visible Smart Suggestions & Motivational Card (Requirement C & E) */}
+            <MotivationalQuote 
+              lang={lang} 
+              consumed={consumedCalories}
+              target={targetCalories}
+              foods={foods}
+              dailyPlan={dailyPlan}
+              onOpenDailyPlan={() => setIsDailyPlanOpen(true)}
+            />
 
             {/* Bottom: Action Buttons & Status Dock */}
-            <div className="space-y-3 w-full shrink-0">
+            <div className="space-y-3 w-full shrink-0 pb-1">
               <div className="grid grid-cols-2 gap-3 w-full">
                 <button 
                   type="button"
