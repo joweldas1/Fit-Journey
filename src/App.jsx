@@ -1,3 +1,5 @@
+import LeoEntranceBanner from './components/LeoEntranceBanner';
+import { getLeoCurrentScene } from './utils/leoScenes';
 import { useState, useEffect, useRef } from 'react';
 import { Toaster, toast } from 'sonner';
 import { Dumbbell, AlertTriangle, Timer, Plus } from 'lucide-react';
@@ -31,6 +33,14 @@ export default function App() {
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [lang, setLang] = useState('bn');
   const [activeTab, setActiveTab] = useState('journey');
+  // Leo 3-5s smart entrance scene banner
+  const [showLeoBanner, setShowLeoBanner] = useState(() => {
+    try {
+      return sessionStorage.getItem('fit_leo_entrance_dismissed') !== 'true';
+    } catch {
+      return true;
+    }
+  });
 
   const [isAddFoodOpen, setIsAddFoodOpen] = useState(false);
   const [isExerciseOpen, setIsExerciseOpen] = useState(false);
@@ -258,7 +268,7 @@ export default function App() {
   const burnedCalories = exercises.reduce((acc, e) => acc + (e.caloriesBurned || 0), 0);
 
   return (
-    <div className={`h-[100dvh] max-h-[100dvh] w-full overflow-hidden flex flex-col transition-colors duration-300 ${darkMode ? 'bg-[#0b1120] text-slate-100' : 'bg-slate-50 text-slate-800'}`}>
+    <div className={`h-[100dvh] max-h-[100dvh] w-full overflow-hidden flex flex-col transition-colors duration-300 ${darkMode ? 'bg-[#09090B] text-slate-100 selection:bg-orange-500 selection:text-white' : 'bg-[#FFFFFF] text-slate-800 selection:bg-teal-500 selection:text-white'}`}>
       
       <Toaster position="top-center" richColors theme={darkMode ? 'dark' : 'light'} />
 
@@ -355,10 +365,38 @@ export default function App() {
         isNotifActive={isNotifActive}
         onToggleNotification={handleToggleNotification}
         onOpenDailyPlan={() => setIsDailyPlanOpen(true)}
+        onToggleLeo={() => setShowLeoBanner(prev => !prev)}
       />
 
       {/* Main Container - Smooth Mobile Responsive Layout (Fixes Quote Section Visibility) */}
-      <main className="flex-1 w-full max-w-md mx-auto flex flex-col overflow-y-auto px-4 sm:px-6 pt-2 pb-4">
+      <main className="flex-1 w-full max-w-md mx-auto flex flex-col min-h-0 overflow-y-auto px-4 sm:px-6 pt-2 pb-6">
+        {/* Leo 3-5 Second Smart Situational Entrance Scene */}
+        {showLeoBanner && (
+          <div className="mb-3 shrink-0">
+            <LeoEntranceBanner
+              isOpen={showLeoBanner}
+              darkMode={darkMode}
+              lang={lang}
+              scene={getLeoCurrentScene({
+                consumedCalories,
+                targetCalories,
+                foodsCount: foods.length,
+                exercisesCount: exercises.length,
+                lang,
+                lastWorkoutTimestamp: exercises[0]?.timestamp || null
+              })}
+              onDismiss={() => {
+                setShowLeoBanner(false);
+                try { sessionStorage.setItem('fit_leo_entrance_dismissed', 'true'); } catch {}
+              }}
+              onAction={(actionType) => {
+                if (actionType === 'add_food') setIsAddFoodOpen(true);
+                else if (actionType === 'exercise') setIsExerciseOpen(true);
+                else if (actionType === 'plan') setIsDailyPlanOpen(true);
+              }}
+            />
+          </div>
+        )}
         
         {/* Tab 1: Dashboard */}
         {activeTab === 'journey' && (

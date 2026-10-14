@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { X, Dumbbell, Sparkles, Loader2, Check } from 'lucide-react';
+import { X, Dumbbell, Sparkles, Loader2, Check, Mic, MicOff } from 'lucide-react';
+import { useVoiceInput } from '../hooks/useVoiceInput';
 import { toast } from 'sonner';
 import { analyzeExerciseWithAI } from '../utils/gemini';
 
@@ -12,6 +13,13 @@ const QUICK_WORKOUTS = [
 
 export default function LogExerciseModal({ isOpen, onClose, onLogExercise, lang = 'bn' }) {
   const [exerciseQuery, setExerciseQuery] = useState('');
+  const { isListening, isSupported, startListening, stopListening } = useVoiceInput({
+    lang,
+    onTranscript: (spokenText) => {
+      setExerciseQuery(spokenText);
+      handleAIAnalyze(spokenText);
+    }
+  });
   const [loading, setLoading] = useState(false);
   const [aiPreview, setAiPreview] = useState(null);
 
@@ -69,24 +77,52 @@ export default function LogExerciseModal({ isOpen, onClose, onLogExercise, lang 
           {lang === 'bn' ? 'কী ব্যায়াম করলেন ও কয়টি সেট দিলেন লিখুন:' : 'Enter what exercise and sets you performed:'}
         </p>
 
+        {/* Leo Listening Speech Bubble */}
+        {isListening && (
+          <div className="flex items-center gap-2 mb-2 px-3 py-2 rounded-2xl bg-teal-500/10 border border-teal-500/30 text-xs font-bold text-teal-600 dark:text-teal-400 animate-pulse">
+            <div className="w-6 h-6 rounded-lg overflow-hidden shrink-0 border border-teal-500/40">
+              <img src="/leo.svg" alt="Leo" className="w-full h-full object-cover object-top" />
+            </div>
+            <span>{lang === 'bn' ? 'লিও শুনছে... আপনার ব্যায়ামের নাম বা সেট বলুন...' : 'Leo is listening... say your exercise or sets...'}</span>
+          </div>
+        )}
+
         <div className="relative mb-3">
           <input
             type="text"
             value={exerciseQuery}
             onChange={(e) => setExerciseQuery(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleAIAnalyze()}
-            placeholder={lang === 'bn' ? "যেমন: ৩ সেট ১২ বার পুশ-আপ দিয়েছি..." : "e.g. 3 sets of 12 pushups..."}
-            className="w-full px-4 py-3.5 pr-24 rounded-2xl bg-slate-50 dark:bg-slate-900/60 border border-slate-300 dark:border-slate-700 text-sm focus:border-brandOrange focus:outline-none"
+            placeholder={lang === 'bn' ? "ব্যায়ামের নাম লিখুন বা মুখে বলুন..." : "e.g. 3 sets of 12 pushups..."}
+            className="w-full px-4 py-3.5 pr-32 rounded-2xl bg-slate-50 dark:bg-slate-900/60 border border-slate-300 dark:border-slate-700 text-sm focus:border-teal-500 focus:outline-none"
           />
-          <button
-            type="button"
-            onClick={() => handleAIAnalyze()}
-            disabled={loading}
-            className="absolute right-2 top-2 bottom-2 px-3 rounded-xl bg-teal-600 text-white text-xs font-medium flex items-center gap-1 active:scale-95 transition disabled:opacity-50"
-          >
-            {loading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5" />}
-            <span>{lang === 'bn' ? 'হিসাব' : 'Analyze'}</span>
-          </button>
+
+          <div className="absolute right-2 top-2 bottom-2 flex items-center gap-1">
+            {isSupported && (
+              <button
+                type="button"
+                onClick={() => (isListening ? stopListening() : startListening())}
+                title={isListening ? 'Stop listening' : 'Voice Input (Leo)'}
+                className={`p-2 rounded-xl border flex items-center justify-center transition active:scale-95 ${
+                  isListening
+                    ? 'bg-rose-500 text-white border-rose-400 animate-pulse shadow-md shadow-rose-500/30'
+                    : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:text-teal-500 hover:border-teal-500'
+                }`}
+              >
+                {isListening ? <MicOff className="w-3.5 h-3.5" /> : <Mic className="w-3.5 h-3.5" />}
+              </button>
+            )}
+
+            <button
+              type="button"
+              onClick={() => handleAIAnalyze()}
+              disabled={loading}
+              className="px-3 py-1.5 h-full rounded-xl bg-teal-600 hover:bg-teal-500 text-white text-xs font-bold flex items-center gap-1 active:scale-95 transition disabled:opacity-50 shadow-sm"
+            >
+              {loading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5" />}
+              <span>{lang === 'bn' ? 'যাচাই' : 'Analyze'}</span>
+            </button>
+          </div>
         </div>
 
         <div className="flex flex-wrap gap-1.5 mb-5">

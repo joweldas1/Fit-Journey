@@ -1,15 +1,14 @@
-@tailwind base;
+﻿@tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer utilities {
-  /* Chrome, Safari, Edge, Opera-তে স্পিনার বন্ধ */
+  /* Hide number input spinners cleanly */
   input[type="number"]::-webkit-inner-spin-button,
   input[type="number"]::-webkit-outer-spin-button {
     -webkit-appearance: none;
     margin: 0;
   }
-  /* Firefox-এ স্পিনার বন্ধ */
   input[type="number"] {
     -moz-appearance: textfield;
   }
@@ -18,6 +17,61 @@
 @layer base {
   body {
     @apply antialiased transition-colors duration-200 select-none;
-    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    font-family: 'Plus Jakarta Sans', 'Noto Sans Bengali', system-ui, -apple-system, sans-serif;
   }
+}
+
+/* Animations for Leo & Voice Interaction */
+@keyframes floatGentle {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
+}
+
+@keyframes pulseGlow {
+  0%, 100% {
+    box-shadow: 0 0 15px rgba(249, 115, 22, 0.25);
+  }
+  50% {
+    box-shadow: 0 0 28px rgba(249, 115, 22, 0.55);
+  }
+}
+
+@keyframes pulseGlowTeal {
+  0%, 100% {
+    box-shadow: 0 0 15px rgba(13, 148, 136, 0.25);
+  }
+  50% {
+    box-shadow: 0 0 28px rgba(13, 148, 136, 0.55);
+  }
+}
+
+@keyframes waveAudio {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.6;
+  }
+  50% {
+    transform: scale(1.18);
+    opacity: 1;
+  }
+}
+
+.animate-float-gentle {
+  animation: floatGentle 3s ease-in-out infinite;
+}
+
+.animate-pulse-glow {
+  animation: pulseGlow 2s ease-in-out infinite;
+}
+
+.animate-pulse-glow-teal {
+  animation: pulseGlowTeal 2s ease-in-out infinite;
+}
+
+.animate-audio-wave {
+  animation: waveAudio 1.2s ease-in-out infinite;
 }

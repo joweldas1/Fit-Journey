@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
-import { X, Sparkles, Loader2, Utensils, Check, ArrowRight, ListPlus, Flame } from 'lucide-react';
+import { X, Sparkles, Loader2, Utensils, Check, ArrowRight, ListPlus, Flame, Mic, MicOff } from 'lucide-react';
+import { useVoiceInput } from '../hooks/useVoiceInput';
 import { toast } from 'sonner';
 import { analyzeFoodWithAI } from '../utils/gemini';
 import FOOD_MASTER_DB from '../utils/food';
@@ -15,6 +16,13 @@ const DEFAULT_QUICK_FOODS = [
 
 export default function AddFoodModal({ isOpen, onClose, onAddFood, lang = 'bn' }) {
   const [foodQuery, setFoodQuery] = useState('');
+  const { isListening, isSupported, startListening, stopListening } = useVoiceInput({
+    lang,
+    onTranscript: (spokenText) => {
+      setFoodQuery(spokenText);
+      handleAIAnalyze(spokenText);
+    }
+  });
   const [selectedMeal, setSelectedMeal] = useState('breakfast');
   const [loading, setLoading] = useState(false);
   const [aiPreview, setAiPreview] = useState(null);
@@ -220,6 +228,16 @@ export default function AddFoodModal({ isOpen, onClose, onAddFood, lang = 'bn' }
           </div>
         </div>
 
+        {/* Leo Listening Speech Bubble */}
+        {isListening && (
+          <div className="flex items-center gap-2 mb-2 px-3 py-2 rounded-2xl bg-orange-500/10 border border-orange-500/30 text-xs font-bold text-brandOrange animate-pulse">
+            <div className="w-6 h-6 rounded-lg overflow-hidden shrink-0 border border-orange-500/40">
+              <img src="/leo.svg" alt="Leo" className="w-full h-full object-cover object-top" />
+            </div>
+            <span>{lang === 'bn' ? 'লিও শুনছে... আপনার খাবারের নাম বলুন...' : 'Leo is listening... say your food item...'}</span>
+          </div>
+        )}
+
         {/* Input Bar */}
         <div className="relative mb-3" ref={dropdownRef}>
           <input
@@ -227,18 +245,36 @@ export default function AddFoodModal({ isOpen, onClose, onAddFood, lang = 'bn' }
             value={foodQuery}
             onChange={handleInputChange}
             onKeyDown={(e) => e.key === 'Enter' && handleAIAnalyze()}
-            placeholder={lang === 'bn' ? "যেমন: ডাল ভাত, ১টি কলা, ২টি সিদ্ধ ডিম..." : "e.g. rice, banana, egg..."}
-            className="w-full px-4 py-3.5 pr-24 rounded-2xl bg-slate-50 dark:bg-slate-900/60 border border-slate-300 dark:border-slate-700 text-sm focus:border-brandOrange focus:outline-none"
+            placeholder={lang === 'bn' ? "খাবারের নাম লিখুন বা মাইকে বলুন..." : "Type food or tap mic to speak..."}
+            className="w-full px-4 py-3.5 pr-32 rounded-2xl bg-slate-50 dark:bg-slate-900/60 border border-slate-300 dark:border-slate-700 text-sm focus:border-brandOrange focus:outline-none"
           />
-          <button
-            type="button"
-            onClick={() => handleAIAnalyze()}
-            disabled={loading}
-            className="absolute right-2 top-2 bottom-2 px-3 rounded-xl bg-brandOrange text-white text-xs font-medium flex items-center gap-1 active:scale-95 transition disabled:opacity-50"
-          >
-            {loading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5" />}
-            <span>{lang === 'bn' ? 'হিসাব' : 'Analyze'}</span>
-          </button>
+
+          <div className="absolute right-2 top-2 bottom-2 flex items-center gap-1">
+            {isSupported && (
+              <button
+                type="button"
+                onClick={() => (isListening ? stopListening() : startListening())}
+                title={isListening ? 'Stop listening' : 'Voice Input (Leo)'}
+                className={`p-2 rounded-xl border flex items-center justify-center transition active:scale-95 ${
+                  isListening
+                    ? 'bg-rose-500 text-white border-rose-400 animate-pulse shadow-md shadow-rose-500/30'
+                    : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:text-brandOrange hover:border-brandOrange'
+                }`}
+              >
+                {isListening ? <MicOff className="w-3.5 h-3.5" /> : <Mic className="w-3.5 h-3.5" />}
+              </button>
+            )}
+
+            <button
+              type="button"
+              onClick={() => handleAIAnalyze()}
+              disabled={loading}
+              className="px-3 py-1.5 h-full rounded-xl bg-brandOrange text-white text-xs font-bold flex items-center gap-1 active:scale-95 transition disabled:opacity-50 shadow-sm"
+            >
+              {loading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5" />}
+              <span>{lang === 'bn' ? 'যাচাই' : 'Analyze'}</span>
+            </button>
+          </div>
 
           {/* Suggestions Dropdown */}
           {showDropdown && suggestions.length > 0 && (
@@ -352,7 +388,7 @@ export default function AddFoodModal({ isOpen, onClose, onAddFood, lang = 'bn' }
             {/* Clean Single Line Source Badge */}
             <div className="mt-3.5 px-3 py-2 rounded-xl bg-orange-500/10 border border-orange-500/20 text-[11px] font-medium text-brandOrange flex items-center gap-2">
               <Sparkles className="w-3.5 h-3.5 flex-shrink-0 text-brandOrange" />
-              <span>{lang === 'bn' ? 'Gemini AI লাইভ পুষ্টি বিশ্লেষণ (AI Analyzed Nutrition)' : 'Gemini AI Verified Nutrition'}</span>
+              <span>{lang === 'bn' ? 'Leo AI লাইভ পুষ্টি বিশ্লেষণ (AI Analyzed Nutrition)' : 'Leo AI Verified Nutrition'}</span>
             </div>
 
             {/* Confirm Button */}

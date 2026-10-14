@@ -1,18 +1,23 @@
-/** @type {import('tailwindcss').Config} */
+﻿/** @type {import('tailwindcss').Config} */
 export default {
   content: [
     "./index.html",
     "./src/**/*.{js,ts,jsx,tsx}",
   ],
-  darkMode: 'class', // ক্লাস-বেসড ডার্ক/লাইট মোড টগলিংয়ের জন্য
+  darkMode: 'class',
   theme: {
     extend: {
+      fontFamily: {
+        sans: ['"Plus Jakarta Sans"', '"Noto Sans Bengali"', 'system-ui', '-apple-system', 'sans-serif'],
+        display: ['"Plus Jakarta Sans"', '"Noto Sans Bengali"', 'sans-serif'],
+      },
       colors: {
-        darkBg: "#0F172A",
-        darkCard: "#1E293B",
-        darkSurface: "#131B2E",
-        brandOrange: "#FF6B4A",
-        brandGreen: "#0D7C66",
+        darkBg: "#09090B",
+        darkCard: "#121217",
+        darkSurface: "#181820",
+        brandOrange: "#F97316",
+        brandTeal: "#0D9488",
+        brandTealLight: "#14B8A6",
         macroCarb: "#38BDF8",
         macroProtein: "#2DD4BF",
         macroFat: "#FBBF24",
@@ -20,4 +25,4 @@ export default {
     },
   },
   plugins: [],
-}   
+}

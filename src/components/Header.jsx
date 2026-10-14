@@ -27,7 +27,8 @@ export default function Header({
   setActiveTab,
   isNotifActive,
   onToggleNotification,
-  onOpenDailyPlan
+  onOpenDailyPlan,
+  onToggleLeo
 }) {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
@@ -60,7 +61,7 @@ export default function Header({
   return (
     <>
       {/* 1. Clean Sticky Header (No Unnecessary Bell on Top) */}
-      <header className="sticky top-0 z-40 w-full h-[66px] shrink-0 bg-white/95 dark:bg-[#121A29]/95 backdrop-blur-xl border-b border-slate-200/80 dark:border-slate-800/80 px-4 sm:px-6 transition-colors duration-300">
+      <header className="sticky top-0 z-40 w-full h-[66px] shrink-0 bg-white/95 dark:bg-[#09090B]/95 backdrop-blur-xl border-b border-slate-200/80 dark:border-[#27272A] px-4 sm:px-6 transition-colors duration-300">
         <div className="max-w-md mx-auto h-full flex items-center justify-between gap-2">
           
           {/* Header Typography */}
@@ -87,6 +88,23 @@ export default function Header({
 
           {/* Right Action Controls: শুধু দরকারি ৩টি বাটন */}
           <div className="flex items-center gap-1.5 shrink-0">
+            {/* Leo Interactive Coach Button */}
+            <button
+              type="button"
+              onClick={onToggleLeo}
+              className="relative p-1.5 rounded-xl bg-orange-500/10 dark:bg-orange-500/15 border border-orange-500/30 hover:border-brandOrange text-brandOrange active:scale-95 transition flex items-center gap-1.5 cursor-pointer shadow-xs"
+              title="Leo Coach"
+            >
+              <div className="w-5 h-5 rounded-lg overflow-hidden bg-darkBg border border-orange-500/30 shrink-0">
+                <img src="/leo.svg" alt="Leo" className="w-full h-full object-cover object-top scale-125" />
+              </div>
+              <span className="text-[11px] font-extrabold pr-0.5 hidden xs:inline">Leo</span>
+              <span className="absolute -top-0.5 -right-0.5 flex h-2.5 w-2.5">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500" />
+              </span>
+            </button>
+
             {/* Language Switcher */}
             <button
               type="button"
