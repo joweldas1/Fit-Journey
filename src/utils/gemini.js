@@ -1,11 +1,19 @@
-// Local food DB used as reliable fallback when Gemini is busy or network is slow
-import FOOD_MASTER_DB from './food';
+// Local food DB kept for reference, non-Gemini fallback is commented out per user requirement
+// import FOOD_MASTER_DB from './food';
 
 // Dual API Key Support for Safe Rotation
-const rawApiKey1 = (import.meta.env.VITE_GEMINI_API_KEY_1 || import.meta.env.VITE_GEMINI_KEY_PRIMARY || import.meta.env.VITE_GEMINI_API_KEY || "").replace(/["';\s]/g, "").trim();
-const rawApiKey2 = (import.meta.env.VITE_GEMINI_API_KEY_2 || import.meta.env.VITE_GEMINI_KEY_SECONDARY || import.meta.env.VITE_GEMINI_KEY_BACKUP || "").replace(/["';\s]/g, "").trim();
+// Multi-key failover pool (Rotates through 4 keys for 100% uptime)
+const candidateKeys = [
+  import.meta.env.VITE_GEMINI_API_KEY_1,
+  import.meta.env.VITE_GEMINI_API_KEY_2,
+  import.meta.env.VITE_GEMINI_API_KEY_3,
+  import.meta.env.VITE_GEMINI_API_KEY_4,
+  import.meta.env.VITE_GEMINI_KEY_PRIMARY,
+  import.meta.env.VITE_GEMINI_KEY_SECONDARY,
+  import.meta.env.VITE_GEMINI_API_KEY
+].map(k => (k || "").replace(/["';\s]/g, "").trim()).filter(Boolean);
 
-const API_KEYS = [rawApiKey1, rawApiKey2].filter(Boolean);
+const API_KEYS = Array.from(new Set(candidateKeys));
 
 // Verified production-ready models
 const MODELS = ["gemini-flash-lite-latest", "gemini-3-flash-preview", "gemini-flash-latest", "gemini-2.5-flash", "gemini-1.5-flash"];
@@ -31,8 +39,12 @@ function extractQuantity(text) {
   return 1;
 }
 
+/**
+ * [NON-GEMINI FALLBACK - COMMENTED OUT PER USER REQUIREMENT]
+ * Strictly using Gemini AI only; local DB fallback is disabled.
+ *
 function searchLocalFoods(normalizedQuery, detectedQty, isEnglish) {
-  const exactMatch = FOOD_MASTER_DB.find(item => 
+  const exactMatch = FOOD_MASTER_DB?.find(item => 
     normalizedQuery.includes(item.bn.toLowerCase()) || 
     normalizedQuery.includes(item.en.toLowerCase()) ||
     item.bn.toLowerCase().includes(normalizedQuery) ||
@@ -60,6 +72,7 @@ function searchLocalFoods(normalizedQuery, detectedQty, isEnglish) {
   }
   return null;
 }
+*/
 
 /**
  * Universal Gemini AI Caller with:
@@ -240,11 +253,12 @@ Raw JSON only. No markdown fences.`;
     }
   }
 
-  // Step 4: Fallback to local food database if Gemini is unavailable
-  const localMatch = searchLocalFoods(normalizedQuery, detectedQty, isEnglish);
-  if (localMatch) {
-    return localMatch;
-  }
+  /*
+   * [STEP 4: NON-GEMINI FALLBACK COMMENTED OUT PER USER REQUIREMENT]
+   * Strictly using Gemini AI only.
+   * const localMatch = searchLocalFoods(normalizedQuery, detectedQty, isEnglish);
+   * if (localMatch) return localMatch;
+   */
 
   // 5. Fail gracefully with clear error
   throw new Error(errorMsg);
