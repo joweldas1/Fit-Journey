@@ -13,26 +13,36 @@ import {
   ChevronDown,
   Briefcase,
   Clock,
-  Loader2
+  Loader2,
+  X,
+  Target
 } from 'lucide-react';
 import { calculateUserCaloriePlanWithAI } from '../utils/gemini';
 
-export default function OnboardingModal({ onComplete, darkMode, setDarkMode, initialLang = 'bn' }) {
-  const [step, setStep] = useState(0);
-  const [lang, setLang] = useState(initialLang);
+export default function OnboardingModal({ 
+  onComplete, 
+  onClose,
+  darkMode, 
+  setDarkMode, 
+  initialLang = 'bn',
+  initialData = null 
+}) {
+  const isEditing = Boolean(initialData);
+  const [step, setStep] = useState(isEditing ? 1 : 0);
+  const [lang, setLang] = useState(initialData?.lang || initialLang);
   const [loadingAI, setLoadingAI] = useState(false);
 
   const [formData, setFormData] = useState({
-    name: '',
-    gender: 'male',
-    age: '25',
-    heightFeet: '5',
-    heightInches: '7',
-    currentWeight: '55',
-    targetWeight: '62',
-    durationMonths: '3',
-    profession: 'desk_job',
-    workHours: '8'
+    name: initialData?.name || '',
+    gender: initialData?.gender || 'male',
+    age: initialData?.age ? String(initialData.age) : '25',
+    heightFeet: initialData?.heightFeet ? String(initialData.heightFeet) : '5',
+    heightInches: initialData?.heightInches ? String(initialData.heightInches) : '7',
+    currentWeight: initialData?.currentWeight ? String(initialData.currentWeight) : '',
+    targetWeight: initialData?.targetWeight ? String(initialData.targetWeight) : '',
+    durationMonths: initialData?.durationMonths ? String(initialData.durationMonths) : '3',
+    profession: initialData?.profession || 'desk_job',
+    workHours: initialData?.workHours ? String(initialData.workHours) : '8'
   });
 
   const [calculatedPlan, setCalculatedPlan] = useState(null);
@@ -108,6 +118,7 @@ export default function OnboardingModal({ onComplete, darkMode, setDarkMode, ini
     const feet = Number(formData.heightFeet);
     const inches = Number(formData.heightInches);
     const weight = Number(formData.currentWeight);
+    const target = Number(formData.targetWeight);
 
     if (!age || age < 1 || age > 100) {
       toast.error(lang === 'bn' ? 'সঠিক বয়স লিখুন (১ - ১০০ বছর)' : 'Please enter a valid age (1 - 100 yrs)');
@@ -122,9 +133,14 @@ export default function OnboardingModal({ onComplete, darkMode, setDarkMode, ini
       return;
     }
     if (!weight || weight < 20 || weight > 250) {
-      toast.error(lang === 'bn' ? 'সঠিক ওজন লিখুন (২০ - ২৫০ কেজি)' : 'Please enter valid weight (20 - 250 kg)');
+      toast.error(lang === 'bn' ? 'সঠিক বর্তমান ওজন লিখুন (২০ - ২৫০ কেজি)' : 'Please enter valid current weight (20 - 250 kg)');
       return;
     }
+    if (!target || target < 20 || target > 250) {
+      toast.error(lang === 'bn' ? 'সঠিক টার্গেট ওজন লিখুন (২০ - ২৫০ কেজি)' : 'Please enter valid target weight (20 - 250 kg)');
+      return;
+    }
+
     setStep(2);
   };
 
@@ -158,8 +174,9 @@ export default function OnboardingModal({ onComplete, darkMode, setDarkMode, ini
           colors: ['#FF6B4A', '#0D7C66', '#38BDF8', '#FBBF24']
         });
       } catch {}
-    } catch {
-      toast.error(lang === 'bn' ? 'হিসাব সম্পন্ন করা যায়নি, আবার চেষ্টা করুন' : 'Calculation failed, please try again');
+    } catch (err) {
+      console.warn("AI calculation warning:", err);
+      toast.error(lang === 'bn' ? 'এআই সার্ভারে সমস্যা, বৈজ্ঞানিক ফর্মুলায় প্ল্যান তৈরি করা হচ্ছে' : 'AI error, generated via scientific formula');
     } finally {
       setLoadingAI(false);
     }
@@ -171,7 +188,8 @@ export default function OnboardingModal({ onComplete, darkMode, setDarkMode, ini
       ...calculatedPlan,
       lang,
       isOnboarded: true,
-      createdAt: new Date().toISOString()
+      createdAt: initialData?.createdAt || new Date().toISOString(),
+      updatedAt: new Date().toISOString()
     };
     localStorage.setItem('fit_profile', JSON.stringify(profile));
     onComplete(profile);
@@ -193,35 +211,53 @@ export default function OnboardingModal({ onComplete, darkMode, setDarkMode, ini
             <span>{lang === 'bn' ? 'English' : 'বাংলা'}</span>
           </button>
 
-          <button 
-            type="button"
-            onClick={() => setDarkMode(!darkMode)}
-            className="p-2 rounded-full bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700/80 text-slate-600 dark:text-amber-400 transition active:scale-95 border border-slate-200/60 dark:border-slate-700"
-          >
-            {darkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-          </button>
+          <div className="flex items-center gap-2">
+            <button 
+              type="button"
+              onClick={() => setDarkMode(!darkMode)}
+              className="p-2 rounded-full bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700/80 text-slate-600 dark:text-amber-400 transition active:scale-95 border border-slate-200/60 dark:border-slate-700"
+            >
+              {darkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+            </button>
+
+            {onClose && (
+              <button
+                type="button"
+                onClick={onClose}
+                className="p-2 rounded-full bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700/80 text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white transition active:scale-95 border border-slate-200/60 dark:border-slate-700"
+                title="Close"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            )}
+          </div>
         </div>
 
         {/* Progress Step Indicator */}
         {step > 0 && (
-          <div className="flex items-center justify-between mb-5 px-1 relative z-10">
-            <div className="flex items-center gap-1.5">
+          <div className="mb-6">
+            <div className="flex items-center justify-between mb-2">
               {[1, 2, 3].map((i) => (
                 <div 
                   key={i} 
-                  className={`h-1.5 rounded-full transition-all duration-500 ease-out ${
+                  className={`h-1.5 flex-1 rounded-full mx-0.5 transition-all duration-300 ${
                     step === i 
-                      ? 'w-7 bg-brandOrange' 
+                      ? 'bg-brandOrange shadow-sm shadow-orange-500/50' 
                       : step > i 
-                        ? 'w-3 bg-teal-500' 
-                        : 'w-3 bg-slate-200 dark:bg-slate-800'
+                        ? 'bg-teal-500' 
+                        : 'bg-slate-200 dark:bg-slate-800'
                   }`}
                 />
               ))}
             </div>
-            <span className="text-[11px] font-medium text-slate-400 tracking-wide">
-              {lang === 'bn' ? `ধাপ ${step} / ৩` : `Step ${step} of 3`}
-            </span>
+            <div className="flex justify-between items-center text-[11px] text-slate-400 font-medium">
+              <span>{lang === 'bn' ? `ধাপ ${step} / ৩` : `Step ${step} of 3`}</span>
+              <span className="font-semibold text-brandOrange">
+                {step === 1 && (lang === 'bn' ? 'শারীরিক তথ্য ও টার্গেট ওজন' : 'Body Metrics & Target Weight')}
+                {step === 2 && (lang === 'bn' ? 'পেশা ও কাজের রুটিন' : 'Profession & Work Routine')}
+                {step === 3 && (lang === 'bn' ? 'কাস্টম প্ল্যান ও সারসংক্ষেপ' : 'Custom Plan Summary')}
+              </span>
+            </div>
           </div>
         )}
 
@@ -244,8 +280,8 @@ export default function OnboardingModal({ onComplete, darkMode, setDarkMode, ini
             </h1>
             <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mb-8 max-w-xs leading-relaxed">
               {lang === 'bn' 
-                ? 'আপনার বয়স, কাজের ধরন ও পেশা অনুযায়ী এআই তৈরি করবে শতভাগ নিখুঁত দৈনিক ক্যালোরি টার্গেট।' 
-                : 'AI will analyze your physical metrics, job routine, and work intensity to build an exact calorie target.'}
+                ? 'আপনার বর্তমান ওজন, টার্গেট ওজন ও কাজের পরিশ্রম বিশ্লেষণ করে এআই তৈরি করবে নিখুঁত দৈনিক ক্যালোরি টার্গেট।' 
+                : 'AI will analyze your current weight, target weight, and work intensity to build an exact calorie plan.'}
             </p>
 
             <button
@@ -259,7 +295,7 @@ export default function OnboardingModal({ onComplete, darkMode, setDarkMode, ini
           </div>
         )}
 
-        {/* STEP 1: Body Metrics with Strict Human Limits & Name Input */}
+        {/* STEP 1: Body Metrics with Explicit Target Weight */}
         {step === 1 && (
           <div className="animate-in fade-in slide-in-from-right-3 duration-300 ease-out">
             <div className="flex items-center gap-3 mb-1">
@@ -267,11 +303,11 @@ export default function OnboardingModal({ onComplete, darkMode, setDarkMode, ini
                 <User className="w-4 h-4" />
               </div>
               <h2 className="text-base sm:text-lg font-bold">
-                {lang === 'bn' ? 'শারীরিক তথ্য ও পরিমাপ' : 'Body Metrics & Gender'}
+                {lang === 'bn' ? 'শারীরিক তথ্য ও টার্গেট ওজন' : 'Body Metrics & Target Weight'}
               </h2>
             </div>
             <p className="text-xs text-slate-400 mb-4 pl-9">
-              {lang === 'bn' ? 'ক্যালোরি হিসাবের জন্য আপনার মৌলিক তথ্য দিন' : 'Enter your basic metrics for accurate BMR calculation'}
+              {lang === 'bn' ? 'সঠিক ক্যালোরির জন্য আপনার বর্তমান ও কাঙ্ক্ষিত টার্গেট ওজন দিন' : 'Enter your metrics and desired target weight'}
             </p>
 
             <div className="space-y-3.5">
@@ -285,6 +321,7 @@ export default function OnboardingModal({ onComplete, darkMode, setDarkMode, ini
                   name="name"
                   value={formData.name}
                   onChange={handleChange}
+                  placeholder={lang === 'bn' ? 'আপনার নাম লিখুন' : 'Enter your name'}
                   maxLength={30}
                   className="w-full px-4 py-2.5 rounded-xl bg-slate-50/70 dark:bg-slate-900/60 border border-slate-300 dark:border-slate-700 focus:border-brandOrange text-sm font-medium focus:outline-none"
                 />
@@ -321,81 +358,145 @@ export default function OnboardingModal({ onComplete, darkMode, setDarkMode, ini
                 </div>
               </div>
 
-              {/* Age (Restricted to 1 - 100) */}
-              <div>
-                <label className="text-xs font-semibold text-slate-600 dark:text-slate-300 block mb-1.5 flex justify-between">
-                  <span>{lang === 'bn' ? 'বয়স (বছর)' : 'Age (years)'}</span>
-                  <span className="text-[10px] text-slate-400 font-normal">
-                    {lang === 'bn' ? '১ - ১০০ বছর' : '1 - 100 yrs'}
-                  </span>
-                </label>
-                <input
-                  type="number"
-                  name="age"
-                  min="1"
-                  max="100"
-                  value={formData.age}
-                  onChange={handleChange}
-                  className="w-full px-4 py-2.5 rounded-xl bg-slate-50/70 dark:bg-slate-900/60 border border-slate-300 dark:border-slate-700 focus:border-brandOrange text-sm font-medium focus:outline-none"
-                  placeholder="25"
-                />
-              </div>
+              {/* Age & Height Grid */}
+              <div className="grid grid-cols-2 gap-3">
+                {/* Age */}
+                <div>
+                  <label className="text-xs font-semibold text-slate-600 dark:text-slate-300 block mb-1.5 flex justify-between">
+                    <span>{lang === 'bn' ? 'বয়স (বছর)' : 'Age (yrs)'}</span>
+                    <span className="text-[10px] text-slate-400 font-normal">১-১০০</span>
+                  </label>
+                  <input
+                    type="number"
+                    name="age"
+                    min="1"
+                    max="100"
+                    value={formData.age}
+                    onChange={handleChange}
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50/70 dark:bg-slate-900/60 border border-slate-300 dark:border-slate-700 focus:border-brandOrange text-sm font-medium focus:outline-none"
+                    placeholder="25"
+                  />
+                </div>
 
-              {/* Height (Restricted 3-8 ft & 0-11 in) */}
-              <div>
-                <label className="text-xs font-semibold text-slate-600 dark:text-slate-300 block mb-1.5 flex justify-between">
-                  <span>{lang === 'bn' ? 'উচ্চতা' : 'Height'}</span>
-                  <span className="text-[10px] text-slate-400 font-normal">
-                    {lang === 'bn' ? '৩-৮ ফুট, ০-১১ ইঞ্চি' : '3-8 ft, 0-11 in'}
-                  </span>
-                </label>
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="flex items-center bg-slate-50/70 dark:bg-slate-900/60 rounded-xl border border-slate-300 dark:border-slate-700 px-3.5 focus-within:border-brandOrange">
-                    <input 
-                      type="number" 
-                      name="heightFeet" 
-                      min="3"
-                      max="8"
-                      value={formData.heightFeet} 
-                      onChange={handleChange} 
-                      className="w-full py-2.5 bg-transparent text-sm font-medium focus:outline-none" 
-                    />
-                    <span className="text-xs text-slate-400 ml-1">{lang === 'bn' ? 'ফুট' : 'ft'}</span>
-                  </div>
-                  <div className="flex items-center bg-slate-50/70 dark:bg-slate-900/60 rounded-xl border border-slate-300 dark:border-slate-700 px-3.5 focus-within:border-brandOrange">
-                    <input 
-                      type="number" 
-                      name="heightInches" 
-                      min="0"
-                      max="11"
-                      value={formData.heightInches} 
-                      onChange={handleChange} 
-                      className="w-full py-2.5 bg-transparent text-sm font-medium focus:outline-none" 
-                    />
-                    <span className="text-xs text-slate-400 ml-1">{lang === 'bn' ? 'ইঞ্চি' : 'in'}</span>
+                {/* Height */}
+                <div>
+                  <label className="text-xs font-semibold text-slate-600 dark:text-slate-300 block mb-1.5 flex justify-between">
+                    <span>{lang === 'bn' ? 'উচ্চতা' : 'Height'}</span>
+                    <span className="text-[10px] text-slate-400 font-normal">৩-৮ ফুট</span>
+                  </label>
+                  <div className="grid grid-cols-2 gap-1.5">
+                    <div className="flex items-center bg-slate-50/70 dark:bg-slate-900/60 rounded-xl border border-slate-300 dark:border-slate-700 px-2 focus-within:border-brandOrange">
+                      <input 
+                        type="number" 
+                        name="heightFeet" 
+                        min="3"
+                        max="8"
+                        value={formData.heightFeet} 
+                        onChange={handleChange} 
+                        className="w-full py-2.5 bg-transparent text-sm font-medium focus:outline-none" 
+                      />
+                      <span className="text-[10px] text-slate-400">{lang === 'bn' ? 'ফুট' : 'ft'}</span>
+                    </div>
+                    <div className="flex items-center bg-slate-50/70 dark:bg-slate-900/60 rounded-xl border border-slate-300 dark:border-slate-700 px-2 focus-within:border-brandOrange">
+                      <input 
+                        type="number" 
+                        name="heightInches" 
+                        min="0"
+                        max="11"
+                        value={formData.heightInches} 
+                        onChange={handleChange} 
+                        className="w-full py-2.5 bg-transparent text-sm font-medium focus:outline-none" 
+                      />
+                      <span className="text-[10px] text-slate-400">{lang === 'bn' ? 'ইঞ্চি' : 'in'}</span>
+                    </div>
                   </div>
                 </div>
               </div>
 
-              {/* Current Weight (Restricted 20-250 kg) */}
-              <div>
-                <label className="text-xs font-semibold text-slate-600 dark:text-slate-300 block mb-1.5 flex justify-between">
-                  <span>{lang === 'bn' ? 'বর্তমান ওজন (কেজি)' : 'Current Weight (kg)'}</span>
-                  <span className="text-[10px] text-slate-400 font-normal">
-                    {lang === 'bn' ? '২০ - ২৫০ কেজি' : '20 - 250 kg'}
+              {/* DEDICATED WEIGHT SECTION: CURRENT WEIGHT & TARGET WEIGHT SIDE-BY-SIDE */}
+              <div className="p-3.5 rounded-2xl bg-slate-50/90 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 space-y-2.5">
+                <div className="flex items-center justify-between text-xs font-bold text-slate-700 dark:text-slate-200">
+                  <span className="flex items-center gap-1.5">
+                    <Target className="w-4 h-4 text-brandOrange" />
+                    <span>{lang === 'bn' ? 'ওজন ও কাঙ্ক্ষিত লক্ষ্য' : 'Weight & Target Benchmark'}</span>
                   </span>
-                </label>
-                <input
-                  type="number"
-                  step="0.1"
-                  name="currentWeight"
-                  min="20"
-                  max="250"
-                  value={formData.currentWeight}
-                  onChange={handleChange}
-                  className="w-full px-4 py-2.5 rounded-xl bg-slate-50/70 dark:bg-slate-900/60 border border-slate-300 dark:border-slate-700 focus:border-brandOrange text-sm font-medium focus:outline-none"
-                  placeholder="55"
-                />
+                  <span className="text-[10px] text-slate-400 font-normal">{lang === 'bn' ? '২০-২৫০ কেজি' : '20-250 kg'}</span>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  {/* Current Weight */}
+                  <div>
+                    <label className="text-[11px] font-semibold text-slate-600 dark:text-slate-400 block mb-1">
+                      {lang === 'bn' ? 'বর্তমান ওজন (কেজি)' : 'Current Weight (kg)'}
+                    </label>
+                    <input
+                      type="number"
+                      step="0.1"
+                      name="currentWeight"
+                      min="20"
+                      max="250"
+                      value={formData.currentWeight}
+                      onChange={handleChange}
+                      placeholder={lang === 'bn' ? 'যেমন: ৬০' : 'e.g. 60'}
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 focus:border-brandOrange text-sm font-bold text-slate-900 dark:text-white focus:outline-none"
+                    />
+                  </div>
+
+                  {/* Target Weight */}
+                  <div>
+                    <label className="text-[11px] font-bold text-brandOrange block mb-1">
+                      {lang === 'bn' ? '🎯 টার্গেট ওজন (কেজি)' : '🎯 Target Weight (kg)'}
+                    </label>
+                    <input
+                      type="number"
+                      step="0.1"
+                      name="targetWeight"
+                      min="20"
+                      max="250"
+                      value={formData.targetWeight}
+                      onChange={handleChange}
+                      placeholder={lang === 'bn' ? 'যেমন: ৬৮' : 'e.g. 68'}
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-white dark:bg-slate-800 border-2 border-brandOrange/50 focus:border-brandOrange text-sm font-bold text-brandOrange focus:outline-none shadow-xs"
+                    />
+                  </div>
+                </div>
+
+                {/* Real-time Goal Calculation Feedback */}
+                {formData.currentWeight && formData.targetWeight && (
+                  <div className="pt-2 border-t border-slate-200/80 dark:border-slate-800 flex items-center justify-between text-xs font-bold">
+                    <span className="text-[11px] text-slate-400">
+                      {lang === 'bn' ? 'নির্ধারিত লক্ষ্য:' : 'Calculated Goal:'}
+                    </span>
+                    {(() => {
+                      const cw = parseFloat(formData.currentWeight);
+                      const tw = parseFloat(formData.targetWeight);
+                      if (isNaN(cw) || isNaN(tw)) return null;
+                      const diff = tw - cw;
+                      if (diff > 0) {
+                        return (
+                          <span className="text-emerald-500 font-bold flex items-center gap-1">
+                            <span>🚀</span>
+                            <span>{lang === 'bn' ? `+${diff.toFixed(1)} কেজি বৃদ্ধি (Weight Gain)` : `+${diff.toFixed(1)} kg Gain`}</span>
+                          </span>
+                        );
+                      } else if (diff < 0) {
+                        return (
+                          <span className="text-sky-400 font-bold flex items-center gap-1">
+                            <span>🔥</span>
+                            <span>{lang === 'bn' ? `${Math.abs(diff).toFixed(1)} কেজি হ্রাস (Weight Loss)` : `${Math.abs(diff).toFixed(1)} kg Loss`}</span>
+                          </span>
+                        );
+                      } else {
+                        return (
+                          <span className="text-amber-400 font-bold flex items-center gap-1">
+                            <span>⚖️</span>
+                            <span>{lang === 'bn' ? 'বর্তমান ওজন বজায় রাখা (Maintain)' : 'Maintain Weight'}</span>
+                          </span>
+                        );
+                      }
+                    })()}
+                  </div>
+                )}
               </div>
             </div>
 
@@ -410,7 +511,7 @@ export default function OnboardingModal({ onComplete, darkMode, setDarkMode, ini
           </div>
         )}
 
-        {/* STEP 2: Lifestyle, Profession, Work Hours & Target */}
+        {/* STEP 2: Lifestyle, Profession, Work Hours & Target Timeline */}
         {step === 2 && (
           <div className="animate-in fade-in slide-in-from-right-3 duration-300 ease-out">
             <div className="flex items-center gap-3 mb-1">
@@ -426,6 +527,47 @@ export default function OnboardingModal({ onComplete, darkMode, setDarkMode, ini
             </p>
 
             <div className="space-y-3.5">
+              {/* Target Goal Summary & Timeline Card */}
+              <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className="text-base">🎯</span>
+                    <div>
+                      <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider block">
+                        {lang === 'bn' ? 'নির্ধারিত লক্ষ্য' : 'Selected Goal'}
+                      </span>
+                      <p className="text-xs font-black text-slate-800 dark:text-slate-100">
+                        {formData.currentWeight} kg ➔ <span className="text-brandOrange font-extrabold">{formData.targetWeight} kg</span>
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setStep(1)}
+                    className="text-[11px] font-bold text-brandOrange hover:underline px-2 py-1 rounded-lg bg-orange-500/10 border border-orange-500/20"
+                  >
+                    {lang === 'bn' ? 'ওজন বদলান ✏️' : 'Edit ✏️'}
+                  </button>
+                </div>
+
+                <div>
+                  <label className="text-xs font-semibold text-slate-600 dark:text-slate-300 block mb-1.5">
+                    {lang === 'bn' ? 'টার্গেট অর্জনের সময়কাল' : 'Target Timeline'}
+                  </label>
+                  <select
+                    name="durationMonths"
+                    value={formData.durationMonths}
+                    onChange={handleChange}
+                    className="w-full px-3 py-2.5 rounded-xl bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-xs font-bold focus:border-brandOrange"
+                  >
+                    <option value="2">{lang === 'bn' ? '২ মাস (দ্রুত গতি)' : '2 Months (Fast)'}</option>
+                    <option value="3">{lang === 'bn' ? '৩ মাস (প্রস্তাবিত স্বাভাবিক গতি)' : '3 Months (Recommended)'}</option>
+                    <option value="4">{lang === 'bn' ? '৪ মাস (স্থির ও স্বাস্থ্যকর)' : '4 Months (Steady)'}</option>
+                    <option value="6">{lang === 'bn' ? '৬ মাস (দীর্ঘমেয়াদী রূপান্তর)' : '6 Months (Long-term)'}</option>
+                  </select>
+                </div>
+              </div>
+
               {/* Profession */}
               <div>
                 <label className="text-xs font-semibold text-slate-600 dark:text-slate-300 block mb-1.5">
@@ -476,45 +618,6 @@ export default function OnboardingModal({ onComplete, darkMode, setDarkMode, ini
                 </div>
               </div>
 
-              {/* Target Weight & Duration */}
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="text-xs font-semibold text-slate-600 dark:text-slate-300 block mb-1.5 flex justify-between">
-                    <span>{lang === 'bn' ? 'টার্গেট ওজন' : 'Target Wt.'}</span>
-                    <span className="text-[10px] text-slate-400">
-                      {lang === 'bn' ? '২০-২৫০ কেজি' : '20-250 kg'}
-                    </span>
-                  </label>
-                  <input
-                    type="number"
-                    step="0.5"
-                    name="targetWeight"
-                    min="20"
-                    max="250"
-                    value={formData.targetWeight}
-                    onChange={handleChange}
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 focus:border-brandOrange text-xs font-medium focus:outline-none"
-                    placeholder="62"
-                  />
-                </div>
-                <div>
-                  <label className="text-xs font-semibold text-slate-600 dark:text-slate-300 block mb-1.5">
-                    {lang === 'bn' ? 'সময়কাল' : 'Timeline'}
-                  </label>
-                  <select
-                    name="durationMonths"
-                    value={formData.durationMonths}
-                    onChange={handleChange}
-                    className="w-full px-3 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-xs font-medium focus:border-brandOrange"
-                  >
-                    <option value="2">{lang === 'bn' ? '২ মাস' : '2 Months'}</option>
-                    <option value="3">{lang === 'bn' ? '৩ মাস' : '3 Months'}</option>
-                    <option value="4">{lang === 'bn' ? '৪ মাস' : '4 Months'}</option>
-                    <option value="6">{lang === 'bn' ? '৬ মাস' : '6 Months'}</option>
-                  </select>
-                </div>
-              </div>
-
               <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-900/40 border border-slate-200/80 dark:border-slate-800 text-[11px] text-slate-400 leading-relaxed">
                 💡 <span className="text-slate-300 font-medium">{lang === 'bn' ? 'এআই সুবিধা:' : 'AI Benefit:'}</span> {lang === 'bn' ? 'আপনার কাজের পরিশ্রমে দিনে কত ক্যালোরি বার্ন হয় তা হিসাব করে সঠিক টার্গেট দেওয়া হবে।' : 'Calculates extra calories burned during work hours to ensure guaranteed target reaching.'}
               </div>
@@ -538,12 +641,12 @@ export default function OnboardingModal({ onComplete, darkMode, setDarkMode, ini
                 {loadingAI ? (
                   <>
                     <Loader2 className="w-4 h-4 animate-spin" />
-                    <span>{lang === 'bn' ? 'AI বিশ্লেষণ করছে...' : 'AI Analyzing...'}</span>
+                    <span>{lang === 'bn' ? 'এআই হিসাব করছে...' : 'AI Calculating...'}</span>
                   </>
                 ) : (
                   <>
-                    <span>{lang === 'bn' ? 'AI ক্যালোরি গণনা করুন' : 'Calculate with AI'}</span>
-                    <Sparkles className="w-3.5 h-3.5" />
+                    <span>{lang === 'bn' ? 'এআই দিয়ে হিসাব করুন' : 'Calculate with AI'}</span>
+                    <Sparkles className="w-4 h-4" />
                   </>
                 )}
               </button>
@@ -564,8 +667,8 @@ export default function OnboardingModal({ onComplete, darkMode, setDarkMode, ini
             </h2>
             <p className="text-xs text-slate-400 mb-4">
               {lang === 'bn' 
-                ? `${formData.gender === 'male' ? 'পুরুষ' : 'মহিলা'} • ${formData.workHours} ঘণ্টা কাজের রুটিন অনুযায়ী ক্যালকুলেটেড`
-                : `${formData.gender === 'male' ? 'Male' : 'Female'} • Custom calibrated for ${formData.workHours}h work routine`}
+                ? `টার্গেট: ${formData.currentWeight} ➔ ${formData.targetWeight} কেজি • ${formData.workHours} ঘণ্টা কাজের রুটিন`
+                : `Target: ${formData.currentWeight} ➔ ${formData.targetWeight} kg • ${formData.workHours}h work routine`}
             </p>
 
             <div className="p-4 rounded-2xl bg-gradient-to-b from-orange-500/10 to-transparent border border-orange-500/20 mb-3.5">
@@ -612,7 +715,7 @@ export default function OnboardingModal({ onComplete, darkMode, setDarkMode, ini
               onClick={handleFinish}
               className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-brandOrange to-orange-500 hover:from-orange-500 hover:to-brandOrange text-white font-bold text-sm shadow-xl shadow-orange-500/25 flex items-center justify-center gap-2 active:scale-[0.98] transition"
             >
-              <span>{lang === 'bn' ? 'অ্যাপে প্রবেশ করুন' : 'Start Journey'}</span>
+              <span>{lang === 'bn' ? (isEditing ? 'টার্গেট আপডেট করুন' : 'অ্যাপে প্রবেশ করুন') : (isEditing ? 'Update Target' : 'Start Journey')}</span>
               <Flame className="w-4 h-4 fill-white" />
             </button>
           </div>

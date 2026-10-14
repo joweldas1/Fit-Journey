@@ -316,18 +316,23 @@ export default function App() {
         </div>
       )}
 
-      {/* Onboarding Wizard */}
+      {/* Onboarding Wizard & Edit Profile */}
       {showOnboarding && (
         <OnboardingModal 
           darkMode={darkMode}
           setDarkMode={setDarkMode}
           initialLang={lang}
+          initialData={profile}
+          onClose={profile ? () => setShowOnboarding(false) : null}
           onComplete={(newProfile) => {
+            const isInitial = !profile;
             setProfile(newProfile);
             setLang(newProfile.lang || 'bn');
             setShowOnboarding(false);
-            // After onboarding, prompt for today's plan
-            setTimeout(() => setIsDailyPlanOpen(true), 500);
+            // After first onboarding, prompt for today's plan
+            if (isInitial) {
+              setTimeout(() => setIsDailyPlanOpen(true), 500);
+            }
           }} 
         />
       )}
@@ -371,6 +376,7 @@ export default function App() {
         onToggleNotification={handleToggleNotification}
         onOpenDailyPlan={() => setIsDailyPlanOpen(true)}
         onToggleLeo={() => setShowLeoBanner(prev => !prev)}
+        onEditProfile={() => setShowOnboarding(true)}
       />
 
       {/* Main Container - Smooth Mobile Responsive Layout (Fixes Quote Section Visibility) */}
@@ -445,10 +451,20 @@ export default function App() {
 
               {/* Status Dock */}
               <div className="w-full grid grid-cols-3 divide-x divide-slate-200/70 dark:divide-slate-800/80 bg-white/60 dark:bg-darkCard/80 border border-slate-200/80 dark:border-slate-800/80 rounded-2xl py-3 px-2 shadow-sm backdrop-blur-md text-center text-xs">
-                <div>
-                  <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider">{txt.goal}</span>
-                  <p className="font-extrabold text-slate-900 dark:text-white mt-0.5">{profile ? `${profile.currentWeight} ➔ ${profile.targetWeight} kg` : '--'}</p>
-                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowOnboarding(true)}
+                  className="hover:bg-orange-500/10 rounded-xl transition text-center px-1 group cursor-pointer"
+                  title={lang === 'bn' ? 'টার্গেট ওজন ও প্রোফাইল পরিবর্তন করুন' : 'Click to edit target weight'}
+                >
+                  <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider flex items-center justify-center gap-1">
+                    <span>{txt.goal}</span>
+                    <span className="text-[9px] text-brandOrange opacity-75 group-hover:opacity-100 transition">✏️</span>
+                  </span>
+                  <p className="font-extrabold text-slate-900 dark:text-white mt-0.5 group-hover:text-brandOrange transition">
+                    {profile ? `${profile.currentWeight} ➔ ${profile.targetWeight} kg` : '--'}
+                  </p>
+                </button>
                 <div>
                   <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider">{txt.burned}</span>
                   <p className="font-extrabold text-teal-500 dark:text-teal-400 mt-0.5">-{burnedCalories} kcal</p>
