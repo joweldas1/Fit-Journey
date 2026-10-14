@@ -1,4 +1,4 @@
-export function validateStep1({ age, heightFeet, heightInches, currentWeight }, lang = 'bn') {
+export function validateStep1({ age, heightFeet, heightInches, currentWeight }, _lang = 'bn') {
   const a = Number(age);
   const ft = Number(heightFeet);
   const inc = Number(heightInches);
@@ -11,7 +11,7 @@ export function validateStep1({ age, heightFeet, heightInches, currentWeight }, 
   return { valid: true };
 }
 
-export function validateStep2({ currentWeight, targetWeight, durationMonths }, lang = 'bn') {
+export function validateStep2({ currentWeight, targetWeight, durationMonths }, _lang = 'bn') {
   const cw = Number(currentWeight);
   const tw = Number(targetWeight);
   const duration = Number(durationMonths);

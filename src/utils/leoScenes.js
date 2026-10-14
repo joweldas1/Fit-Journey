@@ -92,16 +92,17 @@ export function getLeoCurrentScene({
 
   // 9:00 AM - 11:59 AM: Late Morning / Brunch Check
   if (timeVal >= 9 && timeVal < 12) {
+    const hasBreakfast = foodsCount > 0;
     return {
       id: 'late_morning',
       badge: isEn ? '🍳 BREAKFAST CHECK' : '🍳 ব্রেকফাস্ট চেক',
       title: isEn ? 'Morning Almost Over!' : 'সকাল প্রায় শেষ!',
-      message: isEn
-        ? "Morning is passing fast! Have you taken your breakfast yet, or skipping it?"
-        : "সকাল প্রায় শেষ! ব্রেকফাস্ট খেয়েছো তো, নাকি না খেয়েই দিন শুরু করেছো?",
+      message: hasBreakfast
+        ? (isEn ? "Great job starting your day! Staying energized for the upcoming lunch?" : "সকালের খাবার চমৎকার শুরু হয়েছে! দুপুরের আগের সময়টায় এনার্জি কেমন লাগছে?")
+        : (isEn ? "Morning is passing fast! Have you taken your breakfast yet, or skipping it?" : "সকাল প্রায় শেষ! ব্রেকফাস্ট খেয়েছো তো, নাকি না খেয়েই দিন শুরু করেছো?"),
       actionType: 'add_food',
-      actionLabel: isEn ? 'Yes, Log Breakfast (+)' : 'হ্যাঁ, খেয়েছি (+ লগ)',
-      secondaryActionLabel: isEn ? 'Skipping Today' : 'আজ খাইনি',
+      actionLabel: isEn ? 'Log Food (+)' : 'খাবার লগ করুন (+)',
+      secondaryActionLabel: isEn ? 'All Good' : 'সব ঠিক আছে',
       mood: 'energetic',
       accentColor: '#F97316'
     };
@@ -113,9 +114,9 @@ export function getLeoCurrentScene({
       id: 'lunch',
       badge: isEn ? '🍛 LUNCH PROTOCOL' : '🍛 লাঞ্চ টাইম',
       title: isEn ? 'Good Noon!' : 'গুড নুন!',
-      message: isEn
-        ? "Good noon! Have you taken your lunch yet? What did you eat for lunch today?"
-        : "গুড নুন! দুপুরের খাবার খেয়েছো তো? আজকের লাঞ্চে কী কী খেলে?",
+      message: foodsCount === 0
+        ? (isEn ? "No food logged yet today! Have you had lunch or breakfast?" : "আজকে এখনো কোনো খাবার লগ করোনি! দুপুরের লাঞ্চ কিছু খেয়েছো?")
+        : (isEn ? "Good noon! Have you taken your lunch yet? What did you eat for lunch today?" : "গুড নুন! দুপুরের খাবার খেয়েছো তো? আজকের লাঞ্চে কী কী খেলে?"),
       actionType: 'add_food',
       actionLabel: isEn ? 'Log Lunch Now (+)' : 'হ্যাঁ, লাঞ্চ লগ করুন (+)',
       secondaryActionLabel: isEn ? 'Eating Soon' : 'এখনও খাইনি',
@@ -143,15 +144,18 @@ export function getLeoCurrentScene({
 
   // 5:00 PM - 7:59 PM: Evening Movement & Workout
   if (timeVal >= 17 && timeVal < 20) {
+    const hasWorkedOut = exercisesCount > 0;
     return {
       id: 'evening_workout',
       badge: isEn ? '🏃 FITNESS WINDOW' : '🏃 ফিটনেস উইন্ডো',
       title: isEn ? 'Good Evening!' : 'গুড ইভিনিং!',
-      message: isEn
-        ? "Good evening! Did you do any workout, walk, or physical exercise today?"
-        : "গুড ইভিনিং! আজকের কোনো ব্যায়াম, হাঁটা বা ওয়ার্কআউট কি করেছো?",
+      message: hasWorkedOut
+        ? (isEn ? "Great work exercising today! Drinking enough water to hydrate?" : "আজকে ইতোমধ্যে দারুণ এক্সারসাইজ করেছো! পর্যাপ্ত পানি ও ইলেকট্রোলাইট নিয়েছো কি?")
+        : (isEn ? "Good evening! Did you do any workout, walk, or physical exercise today?" : "গুড ইভিনিং! আজকের কোনো ব্যায়াম, হাঁটা বা ওয়ার্কআউট কি করেছো?"),
       actionType: 'exercise',
-      actionLabel: isEn ? 'Yes, Log Workout (+)' : 'হ্যাঁ, ব্যায়াম করেছি (+)',
+      actionLabel: hasWorkedOut 
+        ? (isEn ? 'Add More Workout (+)' : 'আরও ব্যায়াম লগ (+)') 
+        : (isEn ? 'Yes, Log Workout (+)' : 'হ্যাঁ, ব্যায়াম করেছি (+)'),
       secondaryActionLabel: isEn ? 'Rest Day Today' : 'আজ রেস্ট ডে',
       mood: 'energetic',
       accentColor: '#F97316'

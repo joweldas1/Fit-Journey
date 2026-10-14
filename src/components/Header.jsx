@@ -88,12 +88,12 @@ export default function Header({
 
           {/* Right Action Controls: শুধু দরকারি ৩টি বাটন */}
           <div className="flex items-center gap-1.5 shrink-0">
-            {/* Leo Interactive Coach Button */}
+            {/* Leo Interactive Assistant Button */}
             <button
               type="button"
               onClick={onToggleLeo}
               className="relative p-1.5 rounded-xl bg-orange-500/10 dark:bg-orange-500/15 border border-orange-500/30 hover:border-brandOrange text-brandOrange active:scale-95 transition flex items-center gap-1.5 cursor-pointer shadow-xs"
-              title="Leo Coach"
+              title="Leo"
             >
               <div className="w-5 h-5 rounded-lg overflow-hidden bg-darkBg border border-orange-500/30 shrink-0">
                 <img src="/leo.svg" alt="Leo" className="w-full h-full object-cover object-top scale-125" />

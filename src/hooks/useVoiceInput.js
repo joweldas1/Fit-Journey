@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback, useEffect } from 'react';
+import { useState, useRef, useCallback } from 'react';
 
 /**
  * Web Speech API hook for Leo Voice Input
@@ -6,13 +6,10 @@ import { useState, useRef, useCallback, useEffect } from 'react';
  */
 export function useVoiceInput({ lang = 'bn', onTranscript } = {}) {
   const [isListening, setIsListening] = useState(false);
-  const [isSupported, setIsSupported] = useState(false);
+  const [isSupported] = useState(() => 
+    typeof window !== 'undefined' && Boolean(window.SpeechRecognition || window.webkitSpeechRecognition)
+  );
   const recognitionRef = useRef(null);
-
-  useEffect(() => {
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    setIsSupported(Boolean(SpeechRecognition));
-  }, []);
 
   const stopListening = useCallback(() => {
     if (recognitionRef.current) {
@@ -26,7 +23,7 @@ export function useVoiceInput({ lang = 'bn', onTranscript } = {}) {
   }, []);
 
   const startListening = useCallback((customCallback) => {
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    const SpeechRecognition = typeof window !== 'undefined' && (window.SpeechRecognition || window.webkitSpeechRecognition);
     if (!SpeechRecognition) {
       alert(lang === 'bn' 
         ? 'আপনার ব্রাউজারে ভয়েস ইনপুট সমর্থিত নয়। অনুগ্রহ করে গুগল ক্রোম বা এজ ব্যবহার করুন।' 

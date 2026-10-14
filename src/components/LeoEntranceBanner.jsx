@@ -1,5 +1,5 @@
-import React, { useEffect, useState, useRef } from 'react';
-import { X, Sparkles, ArrowRight, MessageSquareCheck, Check } from 'lucide-react';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
+import { X, ArrowRight } from 'lucide-react';
 
 /**
  * Leo Entrance Scene — Prominent 3 to 5 Second Interactive Situational Greeting
@@ -16,6 +16,13 @@ export default function LeoEntranceBanner({
   const [visible, setVisible] = useState(false);
   const [progress, setProgress] = useState(100);
   const isPausedRef = useRef(false);
+
+  const handleClose = useCallback(() => {
+    setVisible(false);
+    setTimeout(() => {
+      if (onDismiss) onDismiss();
+    }, 250);
+  }, [onDismiss]);
 
   // Auto-dismiss countdown (5 seconds)
   useEffect(() => {
@@ -46,14 +53,7 @@ export default function LeoEntranceBanner({
     }, INTERVAL);
 
     return () => clearInterval(timer);
-  }, [isOpen, scene]);
-
-  const handleClose = () => {
-    setVisible(false);
-    setTimeout(() => {
-      if (onDismiss) onDismiss();
-    }, 250);
-  };
+  }, [isOpen, scene, handleClose]);
 
   const handlePrimaryAction = () => {
     if (onAction && scene) {
@@ -129,7 +129,9 @@ export default function LeoEntranceBanner({
                 >
                   {scene.badge}
                 </span>
-                <span className="text-[11px] font-extrabold text-slate-400">Leo</span>
+                <span className="text-[11px] font-extrabold text-slate-400">
+                  {lang === 'bn' ? 'লিও' : 'Leo'}
+                </span>
               </div>
 
               {/* Close Button */}

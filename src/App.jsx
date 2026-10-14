@@ -392,7 +392,6 @@ export default function App() {
               })}
               onDismiss={() => {
                 setShowLeoBanner(false);
-                try { sessionStorage.setItem('fit_leo_entrance_dismissed', 'true'); } catch {}
               }}
               onAction={(actionType) => {
                 if (actionType === 'add_food') setIsAddFoodOpen(true);
