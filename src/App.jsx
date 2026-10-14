@@ -33,14 +33,19 @@ export default function App() {
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [lang, setLang] = useState('bn');
   const [activeTab, setActiveTab] = useState('journey');
-  // Leo 3-5s smart entrance scene banner
-  const [showLeoBanner, setShowLeoBanner] = useState(() => {
-    try {
-      return sessionStorage.getItem('fit_leo_entrance_dismissed') !== 'true';
-    } catch {
-      return true;
-    }
-  });
+  // Leo 3-5s smart entrance scene banner — ALWAYS triggers on entry/refresh
+  const [showLeoBanner, setShowLeoBanner] = useState(true);
+
+  // Trigger Leo whenever user switches back to the tab
+  useEffect(() => {
+    const handleTabReentry = () => {
+      if (document.visibilityState === 'visible') {
+        setShowLeoBanner(true);
+      }
+    };
+    document.addEventListener('visibilitychange', handleTabReentry);
+    return () => document.removeEventListener('visibilitychange', handleTabReentry);
+  }, []);
 
   const [isAddFoodOpen, setIsAddFoodOpen] = useState(false);
   const [isExerciseOpen, setIsExerciseOpen] = useState(false);

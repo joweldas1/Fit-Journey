@@ -1,7 +1,6 @@
 /**
- * Leo Situational Intelligence Engine
- * Dynamically determines Leo's 3-5 second entrance dialogue, mood, and quick action
- * based on the exact time of day, current calorie metrics, and workout state.
+ * Leo Situational Intelligence Engine (Clean UTF-8)
+ * Time-based greetings and questions for Leo
  */
 
 export function getLeoCurrentScene({
@@ -25,10 +24,11 @@ export function getLeoCurrentScene({
       badge: isEn ? '🏆 TARGET ACHIEVED' : '🏆 দৈনিক লক্ষ্য অর্জিত',
       title: isEn ? 'Phenomenal Discipline!' : 'অসাধারণ ডিসিপ্লিন!',
       message: isEn 
-        ? "You've successfully hit 100% of your daily calorie target. Maintain hydration and rest well!"
-        : "আজকের নির্ধারিত দৈনিক ক্যালোরি টার্গেট ১০০% অর্জিত হয়েছে! চমৎকার ধারাবাহিকতা!",
+        ? "You've successfully hit 100% of your daily calorie target! Are you satisfied with today's meals?"
+        : "আজকের দৈনিক ক্যালোরি টার্গেট ১০০% অর্জিত হয়েছে! আজকের খাবার ও নিয়মানুবর্তিতা নিয়ে তুমি কি সন্তুষ্ট?",
       actionType: 'celebrate',
-      actionLabel: isEn ? 'Celebrate 🎉' : 'উদযাপন করি 🎉',
+      actionLabel: isEn ? 'Yes, Celebrated! 🎉' : 'হ্যাঁ, দারুণ হয়েছে! 🎉',
+      secondaryActionLabel: isEn ? 'Close' : 'ঠিক আছে',
       mood: 'celebrate',
       accentColor: '#F97316'
     };
@@ -43,29 +43,31 @@ export function getLeoCurrentScene({
         badge: isEn ? '⚡ RECOVERY PROTOCOL' : '⚡ ওয়ার্কআউট রিকভারি',
         title: isEn ? 'Great Sweat Session!' : 'দুর্দান্ত ওয়ার্কআউট!',
         message: isEn
-          ? "Heavy burn recorded! Fuel your muscle fibers with 20-30g protein and replenish electrolytes."
-          : "চমৎকার ঘাম ঝরিয়েছো! পেশী রিকভারির জন্য পর্যাপ্ত পানি ও পুষ্টিকর খাবার গ্রহণ করো।",
+          ? "Heavy burn recorded! Have you refueled with protein and water yet?"
+          : "চমৎকার ঘাম ঝরিয়েছো! পেশী রিকভারির জন্য পর্যাপ্ত পানি ও প্রোটিন খেয়েছো কি?",
         actionType: 'add_food',
-        actionLabel: isEn ? 'Log Recovery Meal' : 'রিকভারি খাবার লগ করুন',
+        actionLabel: isEn ? 'Log Recovery Food (+)' : 'হ্যাঁ, খাবার লগ করুন (+)',
+        secondaryActionLabel: isEn ? 'Not Yet' : 'এখনও খাইনি',
         mood: 'energetic',
         accentColor: '#0D9488'
       };
     }
   }
 
-  // 3. Time of Day Matrix (10 Situational Slots)
+  // 3. Time of Day Matrix (10 Situational Slots with Direct Questions)
 
   // 12:00 AM - 4:59 AM: Midnight Craving Guard
   if (timeVal >= 0 && timeVal < 5) {
     return {
       id: 'midnight',
       badge: isEn ? '🌙 LATE NIGHT GUARD' : '🌙 লেট-নাইট গার্ড',
-      title: isEn ? 'Still Awake?' : 'এত রাতে জেগে?',
+      title: isEn ? 'Still Awake So Late?' : 'এত রাতে জেগে আছো?',
       message: isEn
-        ? "Don't fall into the midnight snack trap. Drink a glass of water and get restorative sleep!"
-        : "লেট-নাইট ফ্রিজ রেইডের ফাঁদে পা দিও না! এক গ্লাস পানি খেয়ে দ্রুত বিশ্রাম নাও।",
+        ? "What are you doing up so late? Looking for midnight snacks in the fridge?"
+        : "এত রাতে কী করছো? ফ্রিজের দিকে লেট-নাইট স্ন্যাক্স খুঁজতে যাচ্ছ নাকি?",
       actionType: 'dismiss',
-      actionLabel: isEn ? 'Sleeping Now 😴' : 'ঘুমাতে যাচ্ছি 😴',
+      actionLabel: isEn ? 'Just Drinking Water' : 'শুধু পানি খাচ্ছি 💧',
+      secondaryActionLabel: isEn ? 'Going to Sleep' : 'ঘুমাতে যাচ্ছি 😴',
       mood: 'calm',
       accentColor: '#6366F1'
     };
@@ -76,12 +78,13 @@ export function getLeoCurrentScene({
     return {
       id: 'morning',
       badge: isEn ? '☀️ MORNING KICKOFF' : '☀️ শুভ সকাল',
-      title: isEn ? 'Rise & Shine!' : 'শুভ সকাল!',
+      title: isEn ? 'Good Morning!' : 'শুভ সকাল!',
       message: isEn
-        ? "Start your morning with a glass of warm water. What nutrient-rich breakfast are we having?"
-        : "দিনটি ১ গ্লাস বিশুদ্ধ পানি দিয়ে শুরু হোক। আজকের স্বাস্থ্যকর ব্রেকফাস্ট কী হবে?",
+        ? "Good morning! Did you drink a fresh glass of water? What are we having for breakfast today?"
+        : "শুভ সকাল! এক গ্লাস বিশুদ্ধ পানি খেয়েছো তো? আজকের স্বাস্থ্যকর ব্রেকফাস্টে কী খাচ্ছ?",
       actionType: 'add_food',
       actionLabel: isEn ? 'Log Breakfast (+)' : 'ব্রেকফাস্ট লগ করুন (+)',
+      secondaryActionLabel: isEn ? 'Eating Later' : 'পরে খাবো',
       mood: 'energetic',
       accentColor: '#F97316'
     };
@@ -92,12 +95,13 @@ export function getLeoCurrentScene({
     return {
       id: 'late_morning',
       badge: isEn ? '🍳 BREAKFAST CHECK' : '🍳 ব্রেকফাস্ট চেক',
-      title: isEn ? 'Keep Metabolism Active!' : 'মেটাবলিজম সচল রাখো!',
+      title: isEn ? 'Morning Almost Over!' : 'সকাল প্রায় শেষ!',
       message: isEn
-        ? "Morning is passing by! Did you take breakfast? Fuel up your body for high daily productivity."
-        : "সকাল প্রায় শেষ! ব্রেকফাস্ট মিস করোনি তো? সময়মতো খেয়ে মেটাবলিজম সচল রাখো।",
+        ? "Morning is passing fast! Have you taken your breakfast yet, or skipping it?"
+        : "সকাল প্রায় শেষ! ব্রেকফাস্ট খেয়েছো তো, নাকি না খেয়েই দিন শুরু করেছো?",
       actionType: 'add_food',
-      actionLabel: isEn ? 'Log Meal (+)' : 'খাবার লগ করুন (+)',
+      actionLabel: isEn ? 'Yes, Log Breakfast (+)' : 'হ্যাঁ, খেয়েছি (+ লগ)',
+      secondaryActionLabel: isEn ? 'Skipping Today' : 'আজ খাইনি',
       mood: 'energetic',
       accentColor: '#F97316'
     };
@@ -107,13 +111,14 @@ export function getLeoCurrentScene({
   if (timeVal >= 12 && timeVal < 15) {
     return {
       id: 'lunch',
-      badge: isEn ? '🍛 LUNCH TIME' : '🍛 লাঞ্চ টাইম',
+      badge: isEn ? '🍛 LUNCH PROTOCOL' : '🍛 লাঞ্চ টাইম',
       title: isEn ? 'Good Noon!' : 'গুড নুন!',
       message: isEn
-        ? "It's peak lunch time! Balance your plate with healthy protein, fiber, and clean carbs."
-        : "দুপুরের খাবার সময় হয়ে গেছে। প্রোটিন ও সবজি সমৃদ্ধ পুষ্টিকর লাঞ্চ সেরে নাও।",
+        ? "Good noon! Have you taken your lunch yet? What did you eat for lunch today?"
+        : "গুড নুন! দুপুরের খাবার খেয়েছো তো? আজকের লাঞ্চে কী কী খেলে?",
       actionType: 'add_food',
-      actionLabel: isEn ? 'Log Lunch (+)' : 'লাঞ্চ লগ করুন (+)',
+      actionLabel: isEn ? 'Log Lunch Now (+)' : 'হ্যাঁ, লাঞ্চ লগ করুন (+)',
+      secondaryActionLabel: isEn ? 'Eating Soon' : 'এখনও খাইনি',
       mood: 'energetic',
       accentColor: '#0D9488'
     };
@@ -123,13 +128,14 @@ export function getLeoCurrentScene({
   if (timeVal >= 15 && timeVal < 17) {
     return {
       id: 'afternoon',
-      badge: isEn ? '💧 HYDRATION RECHARGE' : '💧 রিফ্রেশমেন্ট চেক',
-      title: isEn ? 'Beat Afternoon Slump!' : 'এনার্জি রিচার্জ করো!',
+      badge: isEn ? '💧 AFTERNOON RECHARGE' : '💧 রিফ্রেশমেন্ট চেক',
+      title: isEn ? 'Afternoon Slump?' : 'বিকেলের ক্লান্তি?',
       message: isEn
-        ? "Feeling fatigued? A glass of cold water or green tea will instantly reboot your mental clarity."
-        : "বিকেলের ক্লান্তি ভর করছে? এক গ্লাস পানি বা গ্রিন টি পান করে মুহূর্তেই চাঙ্গা হয়ে নাও!",
+        ? "Feeling an energy dip? Did you drink enough water this afternoon, or need a healthy snack?"
+        : "বিকেলে এনার্জি কমে যাচ্ছে? পর্যাপ্ত পানি খেয়েছো তো, নাকি হালকা কোনো পুষ্টিকর স্ন্যাক্স লাগবে?",
       actionType: 'add_food',
-      actionLabel: isEn ? 'Log Snack / Water' : 'পানি/স্ন্যাক্স লগ করুন',
+      actionLabel: isEn ? 'Log Snack / Water (+)' : 'স্ন্যাক্স/পানি লগ করুন (+)',
+      secondaryActionLabel: isEn ? 'I am Good' : 'সব ঠিক আছে',
       mood: 'calm',
       accentColor: '#0EA5E9'
     };
@@ -139,13 +145,14 @@ export function getLeoCurrentScene({
   if (timeVal >= 17 && timeVal < 20) {
     return {
       id: 'evening_workout',
-      badge: isEn ? '🏃 PRIME MOVEMENT WINDOW' : '🏃 ফিটনেস উইন্ডো',
+      badge: isEn ? '🏃 FITNESS WINDOW' : '🏃 ফিটনেস উইন্ডো',
       title: isEn ? 'Good Evening!' : 'গুড ইভিনিং!',
       message: isEn
-        ? "Prime hour to move your body! Ready for a gym session, brisk walk, or home pushups?"
-        : "শরীরটা সচল করার সেরা সময় এখন। আজকের কোনো ওয়ার্কআউট, হাঁটা বা ব্যায়ামের প্ল্যান আছে?",
+        ? "Good evening! Did you do any workout, walk, or physical exercise today?"
+        : "গুড ইভিনিং! আজকের কোনো ব্যায়াম, হাঁটা বা ওয়ার্কআউট কি করেছো?",
       actionType: 'exercise',
-      actionLabel: isEn ? 'Log Workout (+)' : 'ব্যায়াম লগ করুন (+)',
+      actionLabel: isEn ? 'Yes, Log Workout (+)' : 'হ্যাঁ, ব্যায়াম করেছি (+)',
+      secondaryActionLabel: isEn ? 'Rest Day Today' : 'আজ রেস্ট ডে',
       mood: 'energetic',
       accentColor: '#F97316'
     };
@@ -155,13 +162,14 @@ export function getLeoCurrentScene({
   if (timeVal >= 20 && timeVal < 22) {
     return {
       id: 'dinner',
-      badge: isEn ? '🥗 DINNER BALANCE' : '🥗 ডিনার ব্যালেন্স',
+      badge: isEn ? '🥗 DINNER CHECK' : '🥗 ডিনার চেক',
       title: isEn ? 'Dinner Time!' : 'ডিনারের সময়!',
       message: isEn
-        ? "Keep dinner light and balanced. Avoid heavy carbs close to bedtime for deeper sleep quality."
-        : "শুভ সন্ধ্যা! ডিনারটা যেন খুব ভারী না হয়। খাবার শেষ করে আজকের ক্যালোরিটা মিলিয়ে নাও।",
+        ? "Have you finished your dinner yet? Let's check and balance your remaining calories!"
+        : "রাতের ডিনার শেষ করেছো তো? চলো আজকের বাকি ক্যালোরির সাথে মিলিয়ে নিই!",
       actionType: 'add_food',
       actionLabel: isEn ? 'Log Dinner (+)' : 'ডিনার লগ করুন (+)',
+      secondaryActionLabel: isEn ? 'Not Yet' : 'এখনও খাইনি',
       mood: 'calm',
       accentColor: '#0D9488'
     };
@@ -173,10 +181,11 @@ export function getLeoCurrentScene({
     badge: isEn ? '✨ DAILY RECAP' : '✨ সারাদিনের হিসাব',
     title: isEn ? 'Wrapping Up Today!' : 'দিন শেষ হতে চলল!',
     message: isEn
-      ? "Take a look at your daily calorie balance. Deep rest tonight will power tomorrow's strength."
-      : "আজকের পুরো ক্যালোরি হিসাবটা দেখে নাও। ভালো ঘুমই কালকের ফিটনেসের আসল চাবিকাঠি।",
+      ? "The day is wrapping up! How did your fitness and calories go today? Ready for good sleep?"
+      : "দিন প্রায় শেষ! আজকের পুরো ক্যালোরির হিসাব কি মিলিয়েছো? কালকের জন্য ভালো ঘুমের প্রস্তুতি নাও!",
     actionType: 'dismiss',
-    actionLabel: isEn ? 'Good Night Leo 🌙' : 'শুভরাত্রি লিও 🌙',
+    actionLabel: isEn ? 'View Final Score' : 'ক্যালোরি হিসাব দেখি',
+    secondaryActionLabel: isEn ? 'Good Night Leo' : 'শুভরাত্রি লিও 🌙',
     mood: 'calm',
     accentColor: '#8B5CF6'
   };

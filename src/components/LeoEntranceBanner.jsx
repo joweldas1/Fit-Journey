@@ -1,9 +1,9 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { X, Sparkles, ArrowRight, CheckCircle2 } from 'lucide-react';
+import { X, Sparkles, ArrowRight, MessageSquareCheck, Check } from 'lucide-react';
 
 /**
- * Leo Entrance Banner — 3 to 5 Second Interactive Situational Scene
- * Displays Leo avatar with contextual guidance based on time-of-day and calorie status.
+ * Leo Entrance Scene — Prominent 3 to 5 Second Interactive Situational Greeting
+ * Greets user by time-of-day, asks situational questions, and provides interactive answer buttons.
  */
 export default function LeoEntranceBanner({
   scene,
@@ -17,7 +17,7 @@ export default function LeoEntranceBanner({
   const [progress, setProgress] = useState(100);
   const isPausedRef = useRef(false);
 
-  // Auto-dismiss countdown (4.5 seconds)
+  // Auto-dismiss countdown (5 seconds)
   useEffect(() => {
     if (!isOpen || !scene) {
       setVisible(false);
@@ -28,7 +28,7 @@ export default function LeoEntranceBanner({
     setProgress(100);
     isPausedRef.current = false;
 
-    const DURATION = 4500; // 4.5 seconds
+    const DURATION = 5000; // 5.0 seconds
     const INTERVAL = 50;
     const step = (INTERVAL / DURATION) * 100;
 
@@ -55,10 +55,14 @@ export default function LeoEntranceBanner({
     }, 250);
   };
 
-  const handleActionButton = () => {
+  const handlePrimaryAction = () => {
     if (onAction && scene) {
       onAction(scene.actionType);
     }
+    handleClose();
+  };
+
+  const handleSecondaryAction = () => {
     handleClose();
   };
 
@@ -75,100 +79,115 @@ export default function LeoEntranceBanner({
       }`}
     >
       <div
-        className={`relative rounded-2xl p-3 sm:p-3.5 border shadow-xl backdrop-blur-xl overflow-hidden transition-colors ${
+        className={`relative rounded-3xl p-3.5 sm:p-4 border shadow-2xl backdrop-blur-2xl overflow-hidden transition-all duration-300 ${
           darkMode
-            ? 'bg-[#121217]/95 border-[#27272A] text-slate-100 shadow-orange-500/5'
-            : 'bg-white/95 border-slate-200/90 text-slate-800 shadow-teal-500/5'
+            ? 'bg-[#121217]/95 border-[#27272A] text-slate-100 shadow-orange-500/10'
+            : 'bg-white/95 border-slate-200/90 text-slate-800 shadow-teal-500/10'
         }`}
       >
-        {/* Subtle Ambient Glow framing Leo */}
+        {/* Soft Ambient Radial Glow */}
         <div
-          className="absolute -left-6 -top-6 w-28 h-28 rounded-full blur-2xl pointer-events-none opacity-20"
+          className="absolute -left-10 -top-10 w-36 h-36 rounded-full blur-3xl pointer-events-none opacity-25"
           style={{ backgroundColor: scene.accentColor || (darkMode ? '#F97316' : '#0D9488') }}
         />
 
-        <div className="flex items-center gap-3 relative z-10">
+        <div className="flex items-start gap-3.5 relative z-10">
           
-          {/* Leo Avatar with Animated Floating Aura */}
-          <div className="relative shrink-0">
+          {/* Leo Animated Mascot Avatar */}
+          <div className="relative shrink-0 pt-0.5">
             <div
-              className={`w-12 h-12 sm:w-13 sm:h-13 rounded-2xl overflow-hidden p-0.5 border shadow-md flex items-center justify-center transition-transform ${
+              className={`w-14 h-14 sm:w-16 sm:h-16 rounded-2xl overflow-hidden p-0.5 border shadow-lg flex items-center justify-center transition-all ${
                 darkMode
-                  ? 'border-orange-500/40 bg-gradient-to-b from-[#181820] to-[#09090B] animate-pulse-glow'
+                  ? 'border-orange-500/40 bg-gradient-to-b from-[#181824] to-[#09090B] animate-pulse-glow'
                   : 'border-teal-500/40 bg-gradient-to-b from-teal-50 to-white animate-pulse-glow-teal'
               }`}
             >
               <img
                 src="/leo.svg"
-                alt="Leo"
+                alt="Leo Mascot"
                 className="w-full h-full object-cover object-top animate-float-gentle scale-110"
-                onError={(e) => {
-                  // Fallback if image fails to render
-                  e.target.style.display = 'none';
-                }}
               />
             </div>
 
-            {/* Live Status indicator */}
-            <span className="absolute -bottom-0.5 -right-0.5 flex h-3 w-3">
+            {/* Online Live Radar Dot */}
+            <span className="absolute -bottom-1 -right-1 flex h-3.5 w-3.5">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-              <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500 border-2 border-darkBg" />
+              <span className="relative inline-flex rounded-full h-3.5 w-3.5 bg-emerald-500 border-2 border-darkBg" />
             </span>
           </div>
 
-          {/* Leo Dialog Content */}
+          {/* Leo Greeting & Question Dialog */}
           <div className="flex-1 min-w-0 pr-1">
-            <div className="flex items-center gap-2 mb-0.5">
-              <span
-                className={`text-[9.5px] sm:text-[10px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-full border ${
-                  darkMode
-                    ? 'bg-orange-500/10 text-brandOrange border-orange-500/25'
-                    : 'bg-teal-500/10 text-teal-700 border-teal-500/25'
-                }`}
-              >
-                {scene.badge}
-              </span>
-              <span className="text-[10px] text-slate-400 font-semibold">• Leo</span>
-            </div>
+            <div className="flex items-center justify-between gap-1 mb-1">
+              <div className="flex items-center gap-2">
+                <span
+                  className={`text-[9.5px] sm:text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full border ${
+                    darkMode
+                      ? 'bg-orange-500/15 text-brandOrange border-orange-500/30'
+                      : 'bg-teal-500/15 text-teal-700 border-teal-500/30'
+                  }`}
+                >
+                  {scene.badge}
+                </span>
+                <span className="text-[11px] font-extrabold text-slate-400">Leo</span>
+              </div>
 
-            <p className="text-xs sm:text-[13px] font-semibold leading-snug line-clamp-2">
-              {scene.message}
-            </p>
-          </div>
-
-          {/* Quick Action Button & Dismiss */}
-          <div className="flex items-center gap-1.5 shrink-0">
-            {scene.actionLabel && (
+              {/* Close Button */}
               <button
                 type="button"
-                onClick={handleActionButton}
-                className={`px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl text-xs font-bold transition-all duration-150 active:scale-95 flex items-center gap-1 cursor-pointer shadow-sm ${
-                  darkMode
-                    ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white hover:opacity-95 shadow-orange-500/20'
-                    : 'bg-gradient-to-r from-teal-600 to-emerald-600 text-white hover:opacity-95 shadow-teal-500/20'
-                }`}
+                onClick={handleClose}
+                aria-label="Close Leo Scene"
+                className="p-1 rounded-xl text-slate-400 hover:text-slate-200 hover:bg-slate-500/10 transition"
               >
-                <span>{scene.actionLabel}</span>
-                <ArrowRight className="w-3 h-3 stroke-[3]" />
+                <X className="w-3.5 h-3.5" />
               </button>
-            )}
+            </div>
 
-            <button
-              type="button"
-              onClick={handleClose}
-              aria-label="Dismiss"
-              className="p-1 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-500/10 transition"
-            >
-              <X className="w-3.5 h-3.5" />
-            </button>
+            {/* Question Text */}
+            <h4 className="text-xs sm:text-sm font-black text-slate-900 dark:text-white leading-tight">
+              {scene.title}
+            </h4>
+            <p className="text-xs sm:text-[12.5px] font-medium text-slate-600 dark:text-slate-300 mt-0.5 leading-snug">
+              {scene.message}
+            </p>
+
+            {/* Interactive Answer Buttons */}
+            <div className="flex items-center gap-2 mt-2.5 flex-wrap">
+              {scene.actionLabel && (
+                <button
+                  type="button"
+                  onClick={handlePrimaryAction}
+                  className={`px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl text-xs font-bold transition-all duration-150 active:scale-95 flex items-center gap-1.5 cursor-pointer shadow-md ${
+                    darkMode
+                      ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white hover:opacity-95 shadow-orange-500/25'
+                      : 'bg-gradient-to-r from-teal-600 to-emerald-600 text-white hover:opacity-95 shadow-teal-500/25'
+                  }`}
+                >
+                  <span>{scene.actionLabel}</span>
+                  <ArrowRight className="w-3 h-3 stroke-[3]" />
+                </button>
+              )}
+
+              {scene.secondaryActionLabel && (
+                <button
+                  type="button"
+                  onClick={handleSecondaryAction}
+                  className="px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-xl text-xs font-semibold text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 bg-slate-100 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/60 transition active:scale-95"
+                >
+                  {scene.secondaryActionLabel}
+                </button>
+              )}
+            </div>
+
           </div>
+
         </div>
 
-        {/* 4.5s Auto-Countdown Indicator Line */}
-        <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-slate-500/10 overflow-hidden">
+        {/* 5.0s Auto-Countdown Indicator Line */}
+        <div className="absolute bottom-0 left-0 right-0 h-[2.5px] bg-slate-500/10 overflow-hidden">
           <div
             className={`h-full transition-all duration-75 ease-linear ${
-              darkMode ? 'bg-orange-500/80' : 'bg-teal-500/80'
+              darkMode ? 'bg-orange-500' : 'bg-teal-500'
             }`}
             style={{ width: `${progress}%` }}
           />
