@@ -1,14 +1,14 @@
-// Local food DB kept for reference, non-Gemini fallback is commented out per Requirement B
-// import FOOD_MASTER_DB from './food';
+// Local food DB used as reliable fallback when Gemini is busy or network is slow
+import FOOD_MASTER_DB from './food';
 
 // Dual API Key Support for Safe Rotation
-const rawApiKey1 = (import.meta.env.VITE_GEMINI_API_KEY_1 || import.meta.env.VITE_GEMINI_API_KEY || "").replace(/["';\s]/g, "").trim();
-const rawApiKey2 = (import.meta.env.VITE_GEMINI_API_KEY_2 || "").replace(/["';\s]/g, "").trim();
+const rawApiKey1 = (import.meta.env.VITE_GEMINI_API_KEY_1 || import.meta.env.VITE_GEMINI_KEY_PRIMARY || import.meta.env.VITE_GEMINI_API_KEY || "").replace(/["';\s]/g, "").trim();
+const rawApiKey2 = (import.meta.env.VITE_GEMINI_API_KEY_2 || import.meta.env.VITE_GEMINI_KEY_SECONDARY || import.meta.env.VITE_GEMINI_KEY_BACKUP || "").replace(/["';\s]/g, "").trim();
 
 const API_KEYS = [rawApiKey1, rawApiKey2].filter(Boolean);
 
 // Verified production-ready models
-const MODELS = ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-1.5-flash"];
+const MODELS = ["gemini-flash-lite-latest", "gemini-3-flash-preview", "gemini-flash-latest", "gemini-2.5-flash", "gemini-1.5-flash"];
 
 function extractQuantity(text) {
   const clean = text.toLowerCase().trim();
@@ -31,10 +31,6 @@ function extractQuantity(text) {
   return 1;
 }
 
-/**
- * [NON-GEMINI FALLBACK - COMMENTED OUT PER REQUIREMENT B]
- * Kept intact as requested; not deleted.
- *
 function searchLocalFoods(normalizedQuery, detectedQty, isEnglish) {
   const exactMatch = FOOD_MASTER_DB.find(item => 
     normalizedQuery.includes(item.bn.toLowerCase()) || 
@@ -45,7 +41,7 @@ function searchLocalFoods(normalizedQuery, detectedQty, isEnglish) {
 
   if (exactMatch) {
     const rawUnit = exactMatch.unit || 'plate';
-    const cleanUnit = rawUnit.replace(/^[\d.]+\s*\/, '').trim() || 'plate';
+    const cleanUnit = rawUnit.replace(/^[\d.]+\s*[/]/, '').trim() || 'plate';
     return {
       type: 'SINGLE_MATCH',
       data: {
@@ -64,7 +60,6 @@ function searchLocalFoods(normalizedQuery, detectedQty, isEnglish) {
   }
   return null;
 }
-*/
 
 /**
  * Universal Gemini AI Caller with:
@@ -245,13 +240,11 @@ Raw JSON only. No markdown fences.`;
     }
   }
 
-  /*
-   * [STEP 4: NON-GEMINI FALLBACK COMMENTED OUT AS PER REQUIREMENT B]
-   * const localMatch = searchLocalFoods(normalizedQuery, detectedQty, isEnglish);
-   * if (localMatch) {
-   *   return localMatch;
-   * }
-   */
+  // Step 4: Fallback to local food database if Gemini is unavailable
+  const localMatch = searchLocalFoods(normalizedQuery, detectedQty, isEnglish);
+  if (localMatch) {
+    return localMatch;
+  }
 
   // 5. Fail gracefully with clear error
   throw new Error(errorMsg);
