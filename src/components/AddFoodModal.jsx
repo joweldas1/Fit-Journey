@@ -30,7 +30,8 @@ export default function AddFoodModal({ isOpen, onClose, onAddFood, lang = 'bn' }
   
   const [selectedImage, setSelectedImage] = useState(null);
   const [analyzingImage, setAnalyzingImage] = useState(false);
-  const fileInputRef = useRef(null);
+  const cameraInputRef = useRef(null);
+  const galleryInputRef = useRef(null);
 
   const [suggestions, setSuggestions] = useState([]);
   const [showDropdown, setShowDropdown] = useState(false);
@@ -184,14 +185,16 @@ export default function AddFoodModal({ isOpen, onClose, onAddFood, lang = 'bn' }
     } finally {
       setLoading(false);
       setAnalyzingImage(false);
-      if (fileInputRef.current) fileInputRef.current.value = '';
+      if (cameraInputRef.current) cameraInputRef.current.value = '';
+      if (galleryInputRef.current) galleryInputRef.current.value = '';
     }
   };
 
   const handleClearImage = () => {
     setSelectedImage(null);
     setAiPreview(null);
-    if (fileInputRef.current) fileInputRef.current.value = '';
+    if (cameraInputRef.current) cameraInputRef.current.value = '';
+    if (galleryInputRef.current) galleryInputRef.current.value = '';
   };
 
   // Khabar add korar shathe shathe tar frequency increment kora
@@ -268,38 +271,65 @@ export default function AddFoodModal({ isOpen, onClose, onAddFood, lang = 'bn' }
           </div>
         </div>
 
-        {/* Hidden Camera & Gallery File Input */}
+        {/* Hidden Direct Camera Input (capture="environment" forces mobile camera to open directly) */}
         <input
           type="file"
-          ref={fileInputRef}
+          ref={cameraInputRef}
+          accept="image/*"
+          capture="environment"
+          onChange={handleImageFileSelect}
+          className="hidden"
+        />
+
+        {/* Hidden Gallery Input (standard file chooser for picking existing photos) */}
+        <input
+          type="file"
+          ref={galleryInputRef}
           accept="image/*"
           onChange={handleImageFileSelect}
           className="hidden"
         />
 
-        {/* Snap Meal Photo Quick Action Banner */}
-        <button
-          type="button"
-          onClick={() => fileInputRef.current?.click()}
-          disabled={loading}
-          className="w-full mb-3.5 flex items-center justify-between p-3 rounded-2xl bg-gradient-to-r from-orange-500/10 via-amber-500/10 to-orange-500/5 hover:from-orange-500/15 hover:to-amber-500/10 border border-orange-500/30 text-left transition active:scale-[0.98] group cursor-pointer shadow-xs"
-        >
-          <div className="flex items-center gap-2.5 min-w-0">
-            <div className="w-9 h-9 rounded-xl bg-brandOrange/15 border border-orange-500/25 flex items-center justify-center text-brandOrange group-hover:scale-105 transition shrink-0">
-              <Camera className="w-4 h-4 stroke-[2.5]" />
-            </div>
-            <div className="min-w-0">
-              <h4 className="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-1.5 truncate">
-                <span>{lang === 'bn' ? 'প্লেটের ছবি তুলে ক্যালোরি মাপুন' : 'Snap Meal Photo & Count Calories'}</span>
-                <span className="text-[9px] px-1.5 py-0.2 rounded-full bg-brandOrange text-white font-extrabold uppercase shrink-0">AI Vision</span>
-              </h4>
-              <p className="text-[10.5px] text-slate-600 dark:text-slate-400 font-medium truncate">
-                {lang === 'bn' ? 'ছবি দেখেই এআই প্রতিটি খাবার ও ক্যালোরি বের করবে' : 'Gemini AI detects food items, portions & calories from photo'}
-              </p>
+        {/* Snap Meal Photo & AI Vision Dual Action Card */}
+        <div className="w-full mb-3.5 p-3 rounded-2xl bg-gradient-to-br from-orange-500/10 via-amber-500/10 to-orange-500/5 border border-orange-500/25 shadow-xs">
+          <div className="flex items-center justify-between mb-2.5">
+            <div className="flex items-center gap-2 min-w-0">
+              <div className="w-8 h-8 rounded-xl bg-brandOrange/15 border border-orange-500/30 flex items-center justify-center text-brandOrange shrink-0">
+                <Camera className="w-4 h-4 stroke-[2.5]" />
+              </div>
+              <div className="min-w-0">
+                <h4 className="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-1.5 truncate">
+                  <span>{lang === 'bn' ? 'প্লেটের ছবি থেকে ক্যালোরি মাপুন' : 'Snap Meal Photo & Count Calories'}</span>
+                  <span className="text-[9px] px-1.5 py-0.2 rounded-full bg-brandOrange text-white font-extrabold uppercase shrink-0">AI Vision</span>
+                </h4>
+                <p className="text-[10px] text-slate-600 dark:text-slate-400 font-medium truncate">
+                  {lang === 'bn' ? 'ছবি দেখেই এআই প্রতিটি খাবার ও ক্যালোরি বের করবে' : 'AI detects food items, portions & calories from photo'}
+                </p>
+              </div>
             </div>
           </div>
-          <ArrowRight className="w-4 h-4 text-brandOrange group-hover:translate-x-0.5 transition shrink-0 ml-1" />
-        </button>
+
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              type="button"
+              onClick={() => cameraInputRef.current?.click()}
+              disabled={loading}
+              className="flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl bg-brandOrange text-white font-bold text-xs shadow-xs hover:bg-orange-600 active:scale-[0.98] transition cursor-pointer disabled:opacity-50"
+            >
+              <Camera className="w-3.5 h-3.5" />
+              <span>{lang === 'bn' ? 'সরাসরি ক্যামেরা' : 'Live Camera'}</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => galleryInputRef.current?.click()}
+              disabled={loading}
+              className="flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 border border-slate-300 dark:border-slate-700 font-bold text-xs shadow-xs hover:border-brandOrange hover:text-brandOrange active:scale-[0.98] transition cursor-pointer disabled:opacity-50"
+            >
+              <ImageIcon className="w-3.5 h-3.5 text-amber-500" />
+              <span>{lang === 'bn' ? 'গ্যালারি / ছবি' : 'Photo Gallery'}</span>
+            </button>
+          </div>
+        </div>
 
         {/* Selected Image Status & Thumbnail */}
         {selectedImage && (
@@ -354,12 +384,12 @@ export default function AddFoodModal({ isOpen, onClose, onAddFood, lang = 'bn' }
           />
 
           <div className="absolute right-2 top-2 bottom-2 flex items-center gap-1">
-            {/* Camera / Photo Button */}
+            {/* Direct Camera Button */}
             <button
               type="button"
-              onClick={() => fileInputRef.current?.click()}
+              onClick={() => cameraInputRef.current?.click()}
               disabled={loading}
-              title={lang === 'bn' ? 'ক্যামেরা দিয়ে ছবি তুলুন বা গ্যালারি থেকে নিন' : 'Take or upload food photo'}
+              title={lang === 'bn' ? 'সরাসরি ক্যামেরা অন করুন' : 'Open live camera'}
               className="p-2 rounded-xl bg-slate-100 hover:bg-orange-500/10 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:text-brandOrange border border-slate-200 dark:border-slate-700 hover:border-brandOrange transition active:scale-95 flex items-center justify-center cursor-pointer"
             >
               <Camera className="w-3.5 h-3.5" />
