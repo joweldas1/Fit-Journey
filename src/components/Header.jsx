@@ -67,44 +67,39 @@ export default function Header({
           
           {/* Brand Logo with Glowing Leo & Fit Journey Typography */}
           <div className="flex-1 min-w-0 flex items-center gap-2.5">
-            {/* Leo Mascot Icon with Neon Glow */}
+            {/* Leo Mascot Icon with Neon Glow (Transparent Background, No Green Dot) */}
             <button
               type="button"
               onClick={onToggleLeo}
               title="Leo Assistant"
               className="relative group shrink-0 focus:outline-none"
             >
-              <div className="w-10 h-10 rounded-2xl p-0.5 border border-orange-500/50 bg-gradient-to-b from-[#1E1E28] to-[#09090B] shadow-[0_0_16px_rgba(249,115,22,0.4)] group-hover:shadow-[0_0_22px_rgba(249,115,22,0.65)] group-hover:scale-105 active:scale-95 transition-all duration-200 flex items-center justify-center overflow-hidden">
+              <div className="w-10 h-10 sm:w-11 sm:h-11 flex items-center justify-center transition-all duration-200 group-hover:scale-105 active:scale-95 filter drop-shadow-[0_0_12px_rgba(249,115,22,0.45)]">
                 <img 
                   src="/leo.svg" 
                   alt="Leo Mascot" 
                   className="w-full h-full object-contain" 
                 />
               </div>
-              {/* Online status indicator */}
-              <span className="absolute -bottom-0.5 -right-0.5 flex h-2.5 w-2.5">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500 border border-[#09090B]" />
-              </span>
             </button>
 
             {/* Glowing Brand Typography & Target */}
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2 flex-wrap">
-                <h1 className="text-base sm:text-lg font-black tracking-wide leading-none flex items-center">
+                <h1 className="text-base sm:text-lg font-black tracking-wider leading-none flex items-center">
                   <span className="text-slate-900 dark:text-white">Fit</span>
-                  <span className="bg-gradient-to-r from-orange-500 via-amber-400 to-orange-400 bg-clip-text text-transparent drop-shadow-[0_0_12px_rgba(249,115,22,0.45)] ml-1.5">
+                  <span className="bg-gradient-to-r from-orange-500 via-amber-400 to-orange-400 bg-clip-text text-transparent drop-shadow-[0_0_12px_rgba(249,115,22,0.45)] ml-2.5">
                     Journey
                   </span>
                 </h1>
                 
-                <div className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-orange-500/10 border border-orange-500/25 text-brandOrange shrink-0">
+                <div className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-orange-500/10 border border-orange-500/25 text-brandOrange shrink-0 ml-1">
                   <Flame className="w-2.5 h-2.5 fill-brandOrange text-brandOrange animate-pulse" />
                   <span className="text-[10px] font-black leading-none">1</span>
                 </div>
               </div>
 
-              <p className="text-[10.5px] font-semibold text-slate-500 dark:text-slate-400 mt-1 truncate flex items-center gap-1 leading-none">
+              <p className="text-[10.5px] font-semibold text-slate-500 dark:text-slate-400 mt-1.5 truncate flex items-center gap-1.5 leading-none">
                 <span>{isBn ? 'ডেইলি টার্গেট:' : 'Daily Target:'}</span>
                 <span className="font-black text-brandOrange text-[11px] tracking-tight">
                   {targetCal}
@@ -123,13 +118,14 @@ export default function Header({
               className="relative p-1.5 rounded-xl bg-orange-500/10 dark:bg-orange-500/15 border border-orange-500/30 hover:border-brandOrange text-brandOrange active:scale-95 transition flex items-center gap-1.5 cursor-pointer shadow-xs"
               title="Leo"
             >
-              <div className="w-5 h-5 rounded-lg overflow-hidden bg-darkBg border border-orange-500/30 shrink-0">
-                <img src="/leo.svg" alt="Leo" className="w-full h-full object-cover object-top scale-125" />
+              <div className="w-5 h-5 shrink-0 flex items-center justify-center">
+                <img src="/leo.svg" alt="Leo" className="w-full h-full object-contain" />
               </div>
               <span className="text-[11px] font-extrabold pr-0.5 hidden xs:inline">Leo</span>
-              <span className="absolute -top-0.5 -right-0.5 flex h-2.5 w-2.5">
+              {/* Very tiny delicate status dot */}
+              <span className="absolute top-1 right-1 flex h-1.5 w-1.5">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500" />
+                <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500" />
               </span>
             </button>
 
