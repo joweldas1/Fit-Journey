@@ -39,7 +39,7 @@ export default function Header({
   const navItems = [
     { 
       id: 'journey', 
-      label: isBn ? 'মাই ফিটনেস জার্নি' : 'My Fitness Journey', 
+      label: 'Fit Journey', 
       icon: Compass 
     },
     { 
@@ -65,26 +65,53 @@ export default function Header({
       <header className="sticky top-0 z-40 w-full h-[66px] shrink-0 bg-white/95 dark:bg-[#09090B]/95 backdrop-blur-xl border-b border-slate-200/80 dark:border-[#27272A] px-4 sm:px-6 transition-colors duration-300">
         <div className="max-w-md mx-auto h-full flex items-center justify-between gap-2">
           
-          {/* Header Typography */}
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2">
-              <h1 className="text-base sm:text-lg font-black tracking-tight text-slate-900 dark:text-white truncate">
-                {isBn ? 'আমার ফিটনেস জার্নি' : 'My Fitness Journey'}
-              </h1>
-              
-              <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-gradient-to-r from-orange-500/15 to-amber-500/15 border border-orange-500/30 text-brandOrange shadow-sm shrink-0">
-                <Flame className="w-3 h-3 fill-brandOrange text-brandOrange animate-pulse" />
-                <span className="text-[11px] font-black leading-none">1</span>
+          {/* Brand Logo with Glowing Leo & Fit Journey Typography */}
+          <div className="flex-1 min-w-0 flex items-center gap-2.5">
+            {/* Leo Mascot Icon with Neon Glow */}
+            <button
+              type="button"
+              onClick={onToggleLeo}
+              title="Leo Assistant"
+              className="relative group shrink-0 focus:outline-none"
+            >
+              <div className="w-10 h-10 rounded-2xl p-0.5 border border-orange-500/50 bg-gradient-to-b from-[#1E1E28] to-[#09090B] shadow-[0_0_16px_rgba(249,115,22,0.4)] group-hover:shadow-[0_0_22px_rgba(249,115,22,0.65)] group-hover:scale-105 active:scale-95 transition-all duration-200 flex items-center justify-center overflow-hidden">
+                <img 
+                  src="/leo.svg" 
+                  alt="Leo Mascot" 
+                  className="w-full h-full object-cover object-top scale-110" 
+                />
               </div>
-            </div>
-
-            <p className="text-[11px] font-medium text-slate-500 dark:text-slate-400 mt-0.5 truncate flex items-center gap-1">
-              <span>{isBn ? 'ডেইলি ক্যালোরি টার্গেট:' : 'Daily Target:'}</span>
-              <span className="font-black text-brandOrange text-xs tracking-tight">
-                {targetCal}
+              {/* Online status indicator */}
+              <span className="absolute -bottom-0.5 -right-0.5 flex h-2.5 w-2.5">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500 border border-[#09090B]" />
               </span>
-              <span>{isBn ? 'ক্যালোরি' : 'kcal'}</span>
-            </p>
+            </button>
+
+            {/* Glowing Brand Typography & Target */}
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <h1 className="text-base sm:text-lg font-black tracking-tight leading-none flex items-center gap-1">
+                  <span className="text-slate-900 dark:text-white">Fit</span>
+                  <span className="bg-gradient-to-r from-orange-500 via-amber-400 to-orange-400 bg-clip-text text-transparent drop-shadow-[0_0_12px_rgba(249,115,22,0.45)]">
+                    Journey
+                  </span>
+                </h1>
+                
+                <div className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-orange-500/10 border border-orange-500/25 text-brandOrange shrink-0">
+                  <Flame className="w-2.5 h-2.5 fill-brandOrange text-brandOrange animate-pulse" />
+                  <span className="text-[10px] font-black leading-none">1</span>
+                </div>
+              </div>
+
+              <p className="text-[10.5px] font-semibold text-slate-500 dark:text-slate-400 mt-1 truncate flex items-center gap-1 leading-none">
+                <span>{isBn ? 'ডেইলি টার্গেট:' : 'Daily Target:'}</span>
+                <span className="font-black text-brandOrange text-[11px] tracking-tight">
+                  {targetCal}
+                </span>
+                <span>{isBn ? 'ক্যালোরি' : 'kcal'}</span>
+              </p>
+            </div>
           </div>
 
           {/* Right Action Controls: শুধু দরকারি ৩টি বাটন */}

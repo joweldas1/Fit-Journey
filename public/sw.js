@@ -40,8 +40,8 @@ self.addEventListener('push', (event) => {
 
   const options = {
     body: data.body,
-    icon: '/favicon.svg',
-    badge: '/favicon.svg',
+    icon: '/leo.svg',
+    badge: '/leo.svg',
     vibrate: [200, 100, 200],
     data: { url: '/' }
   };

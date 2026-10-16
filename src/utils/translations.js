@@ -1,7 +1,7 @@
 export const t = {
   bn: {
     // Existing Onboarding Translations
-    welcomeBadge: "স্মার্ট ফিটনেস জার্নি",
+    welcomeBadge: "FIT JOURNEY AI",
     welcomeTitle: "আপনার ওজন বৃদ্ধির যাত্রা শুরু হোক",
     welcomeSub: "দৈনন্দিন রুটিন ও বিজ্ঞানসম্মত পুষ্টির সাথে লক্ষ্যে পৌঁছান সহজে।",
     getStarted: "যাত্রা শুরু করুন",
@@ -43,7 +43,7 @@ export const t = {
     successMsg: "টার্গেট সফলভাবে হিসাব করা হয়েছে!",
 
     // New 100% UI Sync Translations
-    appTitle: "আমার ফিটনেস জার্নি",
+    appTitle: "Fit Journey",
     dailyProgressTitle: "দৈনিক ক্যালোরি অগ্রগতি",
     complete: "সম্পন্ন",
     addFood: "খাবার যোগ",
@@ -53,15 +53,15 @@ export const t = {
     mealsLogged: "মিল রেকর্ড",
     items: "টি খাবার",
     kcalPerDay: "ক্যালোরি/দিন",
-    journeyTab: "মাই ফিটনেস জার্নি",
+    journeyTab: "Fit Journey",
     targetTab: "ডেইলি ক্যালোরি টার্গেট",
     analyticsTab: "ওজন বৃদ্ধি অগ্রগতি",
     resetBtn: "রিসেট / রি-ক্যালকুলেট করুন"
   },
   en: {
     // Existing Onboarding Translations
-    welcomeBadge: "SMART FITNESS JOURNEY",
-    welcomeTitle: "Start Your Weight Gain Journey",
+    welcomeBadge: "FIT JOURNEY AI",
+    welcomeTitle: "Start Your Fit Journey",
     welcomeSub: "Reach your dream physique with science-backed nutrition and smart habits.",
     getStarted: "Get Started Now",
     step: "Step",
@@ -102,7 +102,7 @@ export const t = {
     successMsg: "Target calculated successfully!",
 
     // New 100% UI Sync Translations
-    appTitle: "My Fitness Journey",
+    appTitle: "Fit Journey",
     dailyProgressTitle: "Daily Calorie Progress",
     complete: "Complete",
     addFood: "Add Food",
@@ -112,7 +112,7 @@ export const t = {
     mealsLogged: "Meals Logged",
     items: "items",
     kcalPerDay: "kcal/day",
-    journeyTab: "My Fitness Journey",
+    journeyTab: "Fit Journey",
     targetTab: "Daily Calorie Target",
     analyticsTab: "Weight Progress",
     resetBtn: "Recalculate / Reset"

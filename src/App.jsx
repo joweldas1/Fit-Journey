@@ -1,4 +1,5 @@
 import LeoEntranceBanner from './components/LeoEntranceBanner';
+import AppEntranceSplash from './components/AppEntranceSplash';
 import { getLeoCurrentScene } from './utils/leoScenes';
 import { useState, useEffect, useRef } from 'react';
 import { Toaster, toast } from 'sonner';
@@ -33,7 +34,9 @@ export default function App() {
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [lang, setLang] = useState('bn');
   const [activeTab, setActiveTab] = useState('journey');
-  // Leo 3-5s smart entrance scene banner — ALWAYS triggers on entry/refresh
+  // First-load smooth entrance splash animation
+  const [showSplash, setShowSplash] = useState(true);
+  // Leo 8s smart entrance scene banner — ALWAYS triggers on entry/refresh
   const [showLeoBanner, setShowLeoBanner] = useState(true);
 
   // Trigger Leo whenever user switches back to the tab
@@ -85,8 +88,8 @@ export default function App() {
         const existingPlan = localStorage.getItem(`fit_daily_plan_${todayKey}`);
         const dismissed = sessionStorage.getItem(`fit_daily_plan_dismissed_${todayKey}`);
         if (!existingPlan && !dismissed) {
-          // Open morning/midnight daily plan popup
-          const timer = setTimeout(() => setIsDailyPlanOpen(true), 500);
+          // Open morning/midnight daily plan popup gracefully after entrance animation (2.5s)
+          const timer = setTimeout(() => setIsDailyPlanOpen(true), 2500);
           return () => clearTimeout(timer);
         }
       } catch (e) {
@@ -276,6 +279,14 @@ export default function App() {
     <div className={`h-[100dvh] max-h-[100dvh] w-full overflow-hidden flex flex-col transition-colors duration-300 ${darkMode ? 'bg-[#09090B] text-slate-100 selection:bg-orange-500 selection:text-white' : 'bg-[#FFFFFF] text-slate-800 selection:bg-teal-500 selection:text-white'}`}>
       
       <Toaster position="top-center" richColors theme={darkMode ? 'dark' : 'light'} />
+
+      {/* Smooth Mobile App Entrance Animation */}
+      {showSplash && (
+        <AppEntranceSplash 
+          lang={lang} 
+          onComplete={() => setShowSplash(false)} 
+        />
+      )}
 
       {/* 2-Minute Reset Modal */}
       {showResetCountdown && (

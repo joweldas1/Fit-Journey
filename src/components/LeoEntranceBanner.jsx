@@ -13,7 +13,7 @@ export default function LeoEntranceBanner({
   darkMode = true,
   lang = 'bn'
 }) {
-  const [visible, setVisible] = useState(false);
+  const [visible, setVisible] = useState(Boolean(isOpen && scene));
   const [progress, setProgress] = useState(100);
   const isPausedRef = useRef(false);
 
@@ -24,10 +24,9 @@ export default function LeoEntranceBanner({
     }, 250);
   }, [onDismiss]);
 
-  // Auto-dismiss countdown (5 seconds)
+  // Auto-dismiss countdown (8 seconds)
   useEffect(() => {
     if (!isOpen || !scene) {
-      setVisible(false);
       return;
     }
 
@@ -35,7 +34,7 @@ export default function LeoEntranceBanner({
     setProgress(100);
     isPausedRef.current = false;
 
-    const DURATION = 5000; // 5.0 seconds
+    const DURATION = 8000; // 8.0 seconds comfortable mobile reading
     const INTERVAL = 50;
     const step = (INTERVAL / DURATION) * 100;
 
