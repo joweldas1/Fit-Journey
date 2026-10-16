@@ -81,10 +81,20 @@ export default function AppEntranceSplash({ onComplete, lang = 'bn' }) {
           {isBn ? 'আপনার দৈনন্দিন পুষ্টি ও ফিটনেস গাইড' : 'Your Daily Nutrition & Fitness Guide'}
         </p>
 
-        {/* Status Pill with Clean Glow Design */}
-        <div className="mt-8 flex items-center gap-2 px-4 py-1.5 rounded-full bg-gradient-to-r from-orange-500/10 via-amber-500/15 to-orange-500/10 border border-orange-500/30 text-xs font-bold text-amber-300 shadow-[0_0_16px_rgba(249,115,22,0.15)]">
-          <span className="w-2 h-2 rounded-full bg-orange-500 animate-ping" />
-          <span className="tracking-wide">{isBn ? 'শুরু হচ্ছে...' : 'Getting Ready...'}</span>
+        {/* Sleek Loading Bar & Small Subdued Text */}
+        <div className="mt-8 sm:mt-9 flex flex-col items-center gap-2">
+          {/* Glowing Animated Loading Track above text */}
+          <div className="w-28 sm:w-32 h-[2.5px] rounded-full bg-white/10 overflow-hidden relative shadow-[0_0_12px_rgba(249,115,22,0.35)]">
+            <div
+              className="h-full bg-gradient-to-r from-orange-500 via-amber-400 to-orange-500 rounded-full transition-all duration-[1300ms] ease-out"
+              style={{ width: stage === 'entering' ? '15%' : '100%' }}
+            />
+          </div>
+
+          {/* Clean Small Text (Dot removed, small & elegant) */}
+          <span className="text-[10px] sm:text-[10.5px] font-medium tracking-[0.22em] uppercase text-slate-400/90">
+            {isBn ? 'শুরু হচ্ছে...' : 'Getting Ready...'}
+          </span>
         </div>
 
       </div>
