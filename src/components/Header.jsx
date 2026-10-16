@@ -111,17 +111,16 @@ export default function Header({
 
           {/* Right Action Controls: শুধু দরকারি ৩টি বাটন */}
           <div className="flex items-center gap-1.5 shrink-0">
-            {/* Leo Interactive Assistant Button */}
+            {/* Leo Interactive Assistant Button (Compact UI matching theme & menu buttons) */}
             <button
               type="button"
               onClick={onToggleLeo}
-              className="relative p-1.5 rounded-xl bg-orange-500/10 dark:bg-orange-500/15 border border-orange-500/30 hover:border-brandOrange text-brandOrange active:scale-95 transition flex items-center gap-1.5 cursor-pointer shadow-xs"
-              title="Leo"
+              className="p-1.5 rounded-xl bg-orange-500/10 dark:bg-orange-500/15 border border-orange-500/30 hover:border-brandOrange text-brandOrange active:scale-95 transition flex items-center justify-center cursor-pointer shadow-xs"
+              title="Leo Assistant"
             >
-              <div className="w-6 h-6 sm:w-7 sm:h-7 shrink-0 flex items-center justify-center">
+              <div className="w-4 h-4 flex items-center justify-center">
                 <img src="/leo.svg" alt="Leo" className="w-full h-full object-contain" />
               </div>
-              <span className="text-[11px] font-extrabold pr-0.5 hidden xs:inline">Leo</span>
             </button>
 
             {/* Language Switcher */}
