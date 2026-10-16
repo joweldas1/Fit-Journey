@@ -1,8 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
-import { X, Sparkles, Loader2, Utensils, Check, ArrowRight, ListPlus, Flame, Mic, MicOff } from 'lucide-react';
+import { X, Sparkles, Loader2, Utensils, Check, ArrowRight, ListPlus, Flame, Mic, MicOff, Camera, Image as ImageIcon, Trash2 } from 'lucide-react';
 import { useVoiceInput } from '../hooks/useVoiceInput';
 import { toast } from 'sonner';
-import { analyzeFoodWithAI } from '../utils/gemini';
+import { analyzeFoodWithAI, analyzeFoodImageWithAI, compressImage } from '../utils/gemini';
 import FOOD_MASTER_DB from '../utils/food';
 
 // Default Fallback jodi user notun hoy ba kono history na thake
@@ -28,6 +28,10 @@ export default function AddFoodModal({ isOpen, onClose, onAddFood, lang = 'bn' }
   const [aiPreview, setAiPreview] = useState(null);
   const [relevantItems, setRelevantItems] = useState([]);
   
+  const [selectedImage, setSelectedImage] = useState(null);
+  const [analyzingImage, setAnalyzingImage] = useState(false);
+  const fileInputRef = useRef(null);
+
   const [suggestions, setSuggestions] = useState([]);
   const [showDropdown, setShowDropdown] = useState(false);
   const dropdownRef = useRef(null);
@@ -155,6 +159,41 @@ export default function AddFoodModal({ isOpen, onClose, onAddFood, lang = 'bn' }
     setRelevantItems([]);
   };
 
+  const handleImageFileSelect = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      setLoading(true);
+      setAnalyzingImage(true);
+      setAiPreview(null);
+      setRelevantItems([]);
+
+      // 1. Instant client-side compression (converts multi-MB phone photo into ~100KB payload)
+      const compressed = await compressImage(file, 1024, 0.82);
+      setSelectedImage(compressed);
+
+      // 2. Multimodal AI Analysis with Gemini Vision
+      const res = await analyzeFoodImageWithAI(compressed, lang);
+      if (res?.data) {
+        setAiPreview(res.data);
+        toast.success(lang === 'bn' ? 'ছবি থেকে খাবার ও ক্যালোরি শনাক্ত হয়েছে!' : 'Meal & calories detected from photo!');
+      }
+    } catch (err) {
+      toast.error(err.message || (lang === 'bn' ? 'ছবি বিশ্লেষণ করা যায়নি' : 'Failed to analyze photo'));
+    } finally {
+      setLoading(false);
+      setAnalyzingImage(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  };
+
+  const handleClearImage = () => {
+    setSelectedImage(null);
+    setAiPreview(null);
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  };
+
   // Khabar add korar shathe shathe tar frequency increment kora
   const handleConfirmAdd = () => {
     if (!aiPreview) return;
@@ -179,6 +218,7 @@ export default function AddFoodModal({ isOpen, onClose, onAddFood, lang = 'bn' }
     setFoodQuery('');
     setAiPreview(null);
     setRelevantItems([]);
+    setSelectedImage(null);
   };
 
   return (
@@ -228,6 +268,70 @@ export default function AddFoodModal({ isOpen, onClose, onAddFood, lang = 'bn' }
           </div>
         </div>
 
+        {/* Hidden Camera & Gallery File Input */}
+        <input
+          type="file"
+          ref={fileInputRef}
+          accept="image/*"
+          onChange={handleImageFileSelect}
+          className="hidden"
+        />
+
+        {/* Snap Meal Photo Quick Action Banner */}
+        <button
+          type="button"
+          onClick={() => fileInputRef.current?.click()}
+          disabled={loading}
+          className="w-full mb-3.5 flex items-center justify-between p-3 rounded-2xl bg-gradient-to-r from-orange-500/10 via-amber-500/10 to-orange-500/5 hover:from-orange-500/15 hover:to-amber-500/10 border border-orange-500/30 text-left transition active:scale-[0.98] group cursor-pointer shadow-xs"
+        >
+          <div className="flex items-center gap-2.5 min-w-0">
+            <div className="w-9 h-9 rounded-xl bg-brandOrange/15 border border-orange-500/25 flex items-center justify-center text-brandOrange group-hover:scale-105 transition shrink-0">
+              <Camera className="w-4 h-4 stroke-[2.5]" />
+            </div>
+            <div className="min-w-0">
+              <h4 className="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-1.5 truncate">
+                <span>{lang === 'bn' ? 'প্লেটের ছবি তুলে ক্যালোরি মাপুন' : 'Snap Meal Photo & Count Calories'}</span>
+                <span className="text-[9px] px-1.5 py-0.2 rounded-full bg-brandOrange text-white font-extrabold uppercase shrink-0">AI Vision</span>
+              </h4>
+              <p className="text-[10.5px] text-slate-600 dark:text-slate-400 font-medium truncate">
+                {lang === 'bn' ? 'ছবি দেখেই এআই প্রতিটি খাবার ও ক্যালোরি বের করবে' : 'Gemini AI detects food items, portions & calories from photo'}
+              </p>
+            </div>
+          </div>
+          <ArrowRight className="w-4 h-4 text-brandOrange group-hover:translate-x-0.5 transition shrink-0 ml-1" />
+        </button>
+
+        {/* Selected Image Status & Thumbnail */}
+        {selectedImage && (
+          <div className="relative mb-3.5 p-2.5 rounded-2xl bg-slate-100 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 flex items-center gap-3 animate-in fade-in duration-200">
+            <div className="w-14 h-14 rounded-xl overflow-hidden bg-slate-200 shrink-0 border border-slate-300 dark:border-slate-700 relative shadow-xs">
+              <img src={selectedImage.dataUrl} alt="Meal Preview" className="w-full h-full object-cover" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-xs font-bold text-slate-900 dark:text-white truncate">
+                {analyzingImage 
+                  ? (lang === 'bn' ? 'লিও ছবি বিশ্লেষণ করছে...' : 'Leo is analyzing your plate...') 
+                  : (aiPreview?.name || (lang === 'bn' ? 'খাবারের ছবি প্রস্তুত' : 'Meal photo ready'))}
+              </p>
+              <p className="text-[10.5px] text-slate-600 dark:text-slate-400 font-medium truncate">
+                {analyzingImage 
+                  ? (lang === 'bn' ? 'প্লেটের খাবার ও ক্যালোরি পরিমাপ করা হচ্ছে' : 'Detecting foods & calculating calories')
+                  : (lang === 'bn' ? 'সফলভাবে বিশ্লেষণ সম্পন্ন হয়েছে' : 'Analysis complete')}
+              </p>
+            </div>
+            {!loading && (
+              <button
+                type="button"
+                onClick={handleClearImage}
+                className="p-1.5 rounded-xl text-slate-400 hover:text-rose-500 hover:bg-rose-500/10 transition shrink-0"
+                title="Remove photo"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            )}
+          </div>
+        )}
+
         {/* Leo Listening Speech Bubble */}
         {isListening && (
           <div className="flex items-center gap-2 mb-2 px-3 py-2 rounded-2xl bg-orange-500/10 border border-orange-500/30 text-xs font-bold text-brandOrange animate-pulse">
@@ -246,10 +350,21 @@ export default function AddFoodModal({ isOpen, onClose, onAddFood, lang = 'bn' }
             onChange={handleInputChange}
             onKeyDown={(e) => e.key === 'Enter' && handleAIAnalyze()}
             placeholder={lang === 'bn' ? "খাবারের নাম লিখুন বা মাইকে বলুন..." : "Type food or tap mic to speak..."}
-            className="w-full px-4 py-3.5 pr-32 rounded-2xl bg-slate-50 dark:bg-slate-900/60 border border-slate-300 dark:border-slate-700 text-sm focus:border-brandOrange focus:outline-none"
+            className="w-full px-4 py-3.5 pr-40 rounded-2xl bg-slate-50 dark:bg-slate-900/60 border border-slate-300 dark:border-slate-700 text-sm focus:border-brandOrange focus:outline-none"
           />
 
           <div className="absolute right-2 top-2 bottom-2 flex items-center gap-1">
+            {/* Camera / Photo Button */}
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={loading}
+              title={lang === 'bn' ? 'ক্যামেরা দিয়ে ছবি তুলুন বা গ্যালারি থেকে নিন' : 'Take or upload food photo'}
+              className="p-2 rounded-xl bg-slate-100 hover:bg-orange-500/10 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:text-brandOrange border border-slate-200 dark:border-slate-700 hover:border-brandOrange transition active:scale-95 flex items-center justify-center cursor-pointer"
+            >
+              <Camera className="w-3.5 h-3.5" />
+            </button>
+
             {isSupported && (
               <button
                 type="button"
@@ -360,10 +475,17 @@ export default function AddFoodModal({ isOpen, onClose, onAddFood, lang = 'bn' }
         {/* Nutrition Preview Card */}
         {aiPreview && (
           <div className="p-4 rounded-2xl bg-orange-500/10 border border-orange-500/25 mb-4 animate-in fade-in zoom-in-95">
+            {/* If analyzed from photo, show preview photo thumbnail */}
+            {aiPreview.photoUrl && (
+              <div className="mb-3 rounded-xl overflow-hidden max-h-40 w-full border border-orange-500/20 shadow-xs">
+                <img src={aiPreview.photoUrl} alt="Analyzed Meal" className="w-full h-full object-cover" />
+              </div>
+            )}
+
             <div className="flex justify-between items-start mb-2">
               <div>
                 <h4 className="text-sm font-bold text-slate-900 dark:text-white">{aiPreview.name}</h4>
-                <p className="text-[11px] text-slate-400">{aiPreview.portion}</p>
+                <p className="text-[11px] text-slate-600 dark:text-slate-400 font-medium">{aiPreview.portion}</p>
               </div>
               <span className="text-base font-extrabold text-brandOrange">
                 +{aiPreview.calories} <span className="text-xs font-normal">kcal</span>
@@ -372,32 +494,60 @@ export default function AddFoodModal({ isOpen, onClose, onAddFood, lang = 'bn' }
 
             <div className="grid grid-cols-3 gap-2 pt-2 border-t border-orange-500/20 text-center">
               <div>
-                <span className="text-[10px] text-slate-400 uppercase">প্রোটিন</span>
-                <p className="text-xs font-bold text-teal-500">{aiPreview.protein}g</p>
+                <span className="text-[10px] text-slate-600 dark:text-slate-400 font-bold uppercase">{lang === 'bn' ? 'প্রোটিন' : 'Protein'}</span>
+                <p className="text-xs font-bold text-teal-600 dark:text-teal-400">{aiPreview.protein}g</p>
               </div>
               <div>
-                <span className="text-[10px] text-slate-400 uppercase">কার্বস</span>
-                <p className="text-xs font-bold text-sky-400">{aiPreview.carbs}g</p>
+                <span className="text-[10px] text-slate-600 dark:text-slate-400 font-bold uppercase">{lang === 'bn' ? 'কার্বস' : 'Carbs'}</span>
+                <p className="text-xs font-bold text-sky-600 dark:text-sky-400">{aiPreview.carbs}g</p>
               </div>
               <div>
-                <span className="text-[10px] text-slate-400 uppercase">ফ্যাট</span>
-                <p className="text-xs font-bold text-amber-400">{aiPreview.fat}g</p>
+                <span className="text-[10px] text-slate-600 dark:text-slate-400 font-bold uppercase">{lang === 'bn' ? 'ফ্যাট' : 'Fat'}</span>
+                <p className="text-xs font-bold text-amber-600 dark:text-amber-400">{aiPreview.fat}g</p>
               </div>
             </div>
+
+            {/* Detected sub-items on plate if multiple foods present */}
+            {aiPreview.items && aiPreview.items.length > 0 && (
+              <div className="mt-3 pt-2.5 border-t border-orange-500/20 space-y-1.5">
+                <span className="text-[10px] font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider block">
+                  {lang === 'bn' ? 'প্লেটে শনাক্তকৃত খাবারসমূহ:' : 'Detected items on plate:'}
+                </span>
+                {aiPreview.items.map((it, idx) => (
+                  <div key={idx} className="flex justify-between items-center text-xs py-0.5">
+                    <span className="font-semibold text-slate-800 dark:text-slate-200">
+                      {it.name} <span className="text-[10px] text-slate-500 font-normal">({it.portion})</span>
+                    </span>
+                    <span className="font-bold text-brandOrange">+{it.calories} kcal</span>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* AI Advice */}
+            {aiPreview.advice && (
+              <div className="mt-2.5 px-2.5 py-1.5 rounded-xl bg-orange-500/10 border border-orange-500/20 text-[11px] text-brandOrange font-semibold">
+                💡 {aiPreview.advice}
+              </div>
+            )}
 
             {/* Clean Single Line Source Badge */}
             <div className="mt-3.5 px-3 py-2 rounded-xl bg-orange-500/10 border border-orange-500/20 text-[11px] font-medium text-brandOrange flex items-center gap-2">
               <Sparkles className="w-3.5 h-3.5 flex-shrink-0 text-brandOrange" />
-              <span>{lang === 'bn' ? 'Leo AI লাইভ পুষ্টি বিশ্লেষণ (AI Analyzed Nutrition)' : 'Leo AI Verified Nutrition'}</span>
+              <span>
+                {aiPreview.source === 'gemini_vision'
+                  ? (lang === 'bn' ? 'Leo AI ভিশন দিয়ে ছবি থেকে স্বয়ংক্রিয় পরিমাপকৃত' : 'Measured from photo via Leo AI Vision')
+                  : (lang === 'bn' ? 'Leo AI লাইভ পুষ্টি বিশ্লেষণ (AI Analyzed Nutrition)' : 'Leo AI Verified Nutrition')}
+              </span>
             </div>
 
             {/* Confirm Button */}
             <button
               type="button"
               onClick={handleConfirmAdd}
-              className="w-full mt-3.5 py-3 rounded-xl bg-teal-600 hover:bg-teal-700 text-white font-medium text-xs flex items-center justify-center gap-1.5 shadow-md active:scale-95 transition"
+              className="w-full mt-3.5 py-3 rounded-xl bg-teal-600 hover:bg-teal-700 text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-md active:scale-95 transition cursor-pointer"
             >
-              <Check className="w-4 h-4" />
+              <Check className="w-4 h-4 stroke-[3]" />
               <span>{lang === 'bn' ? 'তালিকায় যোগ করুন' : 'Confirm & Log Food'}</span>
             </button>
           </div>

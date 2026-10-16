@@ -17,7 +17,7 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const { prompt, systemInstruction } = req.body || {};
+  const { prompt, systemInstruction, image } = req.body || {};
 
   if (!prompt) {
     return res.status(400).json({ error: 'Prompt is required' });
@@ -45,8 +45,19 @@ export default async function handler(req, res) {
       try {
         const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${activeKey}`;
         
+        const parts = [{ text: prompt }];
+
+        if (image && image.data && image.mimeType) {
+          parts.push({
+            inlineData: {
+              mimeType: image.mimeType,
+              data: image.data
+            }
+          });
+        }
+
         const bodyPayload = {
-          contents: [{ parts: [{ text: prompt }] }]
+          contents: [{ parts }]
         };
 
         if (systemInstruction) {
@@ -56,7 +67,7 @@ export default async function handler(req, res) {
         }
 
         const controller = new AbortController();
-        const timeout = setTimeout(() => controller.abort(), 12000);
+        const timeout = setTimeout(() => controller.abort(), 18000);
 
         const response = await fetch(endpoint, {
           method: 'POST',

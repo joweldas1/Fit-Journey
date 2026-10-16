@@ -80,13 +80,13 @@ function searchLocalFoods(normalizedQuery, detectedQty, isEnglish) {
  * 2. Safe client-side Dual API Key Rotation & retry backoff (Key 1 -> 429/Error -> Key 2)
  * 3. Verified Multi-model cascade (2.5-flash -> 2.0-flash -> 1.5-flash)
  */
-export async function callGeminiFast(prompt, systemInstruction = '') {
+export async function callGeminiFast(prompt, systemInstruction = '', image = null) {
   // 1. Try Serverless API first (Keeps keys secret and rotates on backend)
   try {
     const serverlessRes = await fetch('/api/gemini', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ prompt, systemInstruction })
+      body: JSON.stringify({ prompt, systemInstruction, image })
     });
 
     if (serverlessRes.ok) {
@@ -115,12 +115,23 @@ export async function callGeminiFast(prompt, systemInstruction = '') {
 
     for (const model of MODELS) {
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 12000);
+      const timeoutId = setTimeout(() => controller.abort(), 18000);
 
       try {
         const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${currentKey}`;
+        const parts = [{ text: prompt }];
+
+        if (image && image.data && image.mimeType) {
+          parts.push({
+            inlineData: {
+              mimeType: image.mimeType,
+              data: image.data
+            }
+          });
+        }
+
         const payload = {
-          contents: [{ parts: [{ text: prompt }] }]
+          contents: [{ parts }]
         };
         if (systemInstruction) {
           payload.systemInstruction = { parts: [{ text: systemInstruction }] };
@@ -168,6 +179,132 @@ export async function callGeminiFast(prompt, systemInstruction = '') {
   }
 
   return null;
+}
+
+/**
+ * Fast client-side image compression & resizing for instant Gemini Vision analysis
+ * Prevents Vercel 4.5MB payload limit and provides blazing mobile experience
+ */
+export function compressImage(file, maxDimension = 1024, quality = 0.82) {
+  return new Promise((resolve, reject) => {
+    if (!file || !file.type.startsWith('image/')) {
+      return reject(new Error('Selected file is not an image'));
+    }
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        let width = img.width;
+        let height = img.height;
+
+        if (width > height) {
+          if (width > maxDimension) {
+            height = Math.round((height * maxDimension) / width);
+            width = maxDimension;
+          }
+        } else {
+          if (height > maxDimension) {
+            width = Math.round((width * maxDimension) / height);
+            height = maxDimension;
+          }
+        }
+
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+
+        const mimeType = 'image/jpeg';
+        const dataUrl = canvas.toDataURL(mimeType, quality);
+        const base64Data = dataUrl.split(',')[1];
+
+        resolve({
+          dataUrl,
+          data: base64Data,
+          mimeType,
+          originalName: file.name
+        });
+      };
+      img.onerror = () => reject(new Error('Failed to load image'));
+      img.src = e.target.result;
+    };
+    reader.onerror = () => reject(new Error('Failed to read image file'));
+    reader.readAsDataURL(file);
+  });
+}
+
+/**
+ * Multimodal AI Food Analysis from Photo
+ * Identifies every item on the plate, portion sizes, calories & macros with Gemini Vision
+ */
+export async function analyzeFoodImageWithAI(imageData, lang = 'bn') {
+  const isEnglish = lang === 'en';
+
+  const systemInstruction = `You are a world-class AI nutritionist and food vision expert specializing in Bangladeshi, South Asian, and international culinary analysis.
+Your job is to inspect photos of meals/plates, recognize all visible foods, estimate realistic portion sizes, and calculate accurate nutrition data (calories, protein, carbs, fat).
+Output must be strictly valid JSON without markdown wrapping.`;
+
+  const prompt = `Analyze this food photograph.
+Language requirement: ${isEnglish ? 'English' : 'Bengali (বাংলা)'}.
+
+Tasks:
+1. Identify all food items visible on this plate / in this photo.
+2. Estimate the portion of each item realistically based on plate size or visual cues (e.g. "১ প্লেট বা ২০০ গ্রাম", "২ পিস মুরগি", "১ বাটি ডাল").
+3. Calculate calories and macros (protein, carbs, fat in grams) for each item and for the entire plate total.
+4. Give a concise, motivating health and nutrition insight.
+
+Return STRICT JSON matching this exact structure:
+{
+  "name": "${isEnglish ? 'Combined name of meal (e.g. Rice with Chicken & Dal)' : 'খাবারের সারসংক্ষেপ নাম (যেমন: ভাত, মুরগির মাংস ও ডাল)'}",
+  "portion": "${isEnglish ? '1 standard plate' : '১ সাধারণ প্লেট'}",
+  "calories": 540,
+  "protein": 28,
+  "carbs": 65,
+  "fat": 12,
+  "items": [
+    {
+      "name": "${isEnglish ? 'Chicken Curry' : 'মুরগির মাংস'}",
+      "portion": "${isEnglish ? '2 pieces' : '২ টুকরা'}",
+      "calories": 220,
+      "protein": 22,
+      "carbs": 3,
+      "fat": 10
+    }
+  ],
+  "advice": "${isEnglish ? 'Balanced meal with good protein. Add cucumber salad for fiber.' : 'সুষম পুষ্টিকর খাবার। সাথে একটু শসা বা সালাদ যোগ করলে ফাইবার ও হজম ভালো হবে।'}"
+}`;
+
+  const res = await callGeminiFast(prompt, systemInstruction, {
+    data: imageData.data || imageData.base64,
+    mimeType: imageData.mimeType || 'image/jpeg'
+  });
+
+  if (!res || (!res.calories && !res.items)) {
+    throw new Error(isEnglish ? 'Could not recognize food from photo. Please try a clearer shot.' : 'ছবি থেকে খাবার শনাক্ত করা যায়নি। অনুগ্রহ করে পরিষ্কার ছবি তুলুন।');
+  }
+
+  const calories = Math.round(Number(res.calories) || Number(res.totalCalories) || 0);
+  const protein = Math.round((Number(res.protein) || Number(res.totalProtein) || 0) * 10) / 10;
+  const carbs = Math.round((Number(res.carbs) || Number(res.totalCarbs) || 0) * 10) / 10;
+  const fat = Math.round((Number(res.fat) || Number(res.totalFat) || 0) * 10) / 10;
+
+  return {
+    type: 'SINGLE_MATCH',
+    data: {
+      name: res.name || (isEnglish ? 'Photo Meal' : 'ছবি থেকে শনাক্তকৃত খাবার'),
+      calories,
+      protein,
+      carbs,
+      fat,
+      portion: res.portion || (isEnglish ? '1 serving' : '১ পরিবেশন'),
+      items: Array.isArray(res.items) ? res.items : [],
+      advice: res.advice || '',
+      source: 'gemini_vision',
+      photoUrl: imageData.dataUrl || null
+    }
+  };
 }
 
 /**
