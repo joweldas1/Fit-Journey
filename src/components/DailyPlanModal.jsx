@@ -64,29 +64,43 @@ export default function DailyPlanModal({
       <div className="w-full max-w-lg bg-white dark:bg-[#151D2E] rounded-t-[32px] sm:rounded-3xl p-5 sm:p-6 shadow-2xl border border-slate-200/80 dark:border-slate-800 text-slate-800 dark:text-slate-100 max-h-[92vh] overflow-y-auto">
         
         {/* Header */}
-        <div className="flex items-center justify-between pb-3.5 border-b border-slate-100 dark:border-slate-800">
-          <div className="flex items-center gap-2.5">
-            <div className="p-2 rounded-xl bg-orange-500/10 text-brandOrange border border-orange-500/20">
+        <div className="flex items-center justify-between pb-3.5 border-b border-slate-100 dark:border-slate-800 gap-2">
+          <div className="flex items-center gap-2.5 min-w-0 flex-1">
+            <div className="p-2 rounded-xl bg-orange-500/10 text-brandOrange border border-orange-500/20 shrink-0">
               <Calendar className="w-4 h-4" />
             </div>
-            <div>
-              <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
-                <span>{isBn ? 'আজকের ডায়েট ও ক্যালোরি পরিকল্পনা' : "Today's Calorie & Meal Plan"}</span>
-                <span className="text-[10px] px-2 py-0.5 rounded-full bg-orange-500/15 text-brandOrange font-bold">
-                  AI Smart
-                </span>
+            <div className="min-w-0 flex-1">
+              <h3 className="text-sm sm:text-base font-bold text-slate-900 dark:text-white truncate">
+                {isBn ? 'আজকের ডায়েট ও ক্যালোরি পরিকল্পনা' : "Today's Calorie & Meal Plan"}
               </h3>
-              <p className="text-[11px] text-slate-400">
-                {isBn ? 'সারাদিন কী কী খাওয়ার ইচ্ছা আছে ফ্রিমুক্তভাবে লিখুন' : 'Describe your planned meals in your own words'}
+              <p className="text-[11px] text-slate-400 truncate">
+                {isBn ? 'সারাদিন কী কী খাওয়ার ইচ্ছা আছে লিখুন' : 'Describe your planned meals in your own words'}
               </p>
             </div>
           </div>
-          <button 
-            onClick={onClose} 
-            className="p-1.5 rounded-xl text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition"
-          >
-            <X className="w-4 h-4" />
-          </button>
+
+          {/* Leo Mascot Image & Close Button */}
+          <div className="flex items-center gap-1.5 shrink-0">
+            {/* Leo Mascot Image (where arrow pointed) */}
+            <div 
+              className="w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center filter drop-shadow-[0_0_10px_rgba(249,115,22,0.45)]"
+              title="Leo AI"
+            >
+              <img 
+                src="/leo.svg" 
+                alt="Leo Mascot" 
+                className="w-full h-full object-contain animate-float-gentle" 
+              />
+            </div>
+
+            <button 
+              onClick={onClose} 
+              className="p-1.5 rounded-xl text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition"
+              title="Close"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
         </div>
 
         {/* Example Presets */}
