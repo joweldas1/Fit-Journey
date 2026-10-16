@@ -66,15 +66,15 @@ export default function Header({
         <div className="max-w-md mx-auto h-full flex items-center justify-between gap-2">
           
           {/* Brand Logo with Glowing Leo & Fit Journey Typography */}
-          <div className="flex-1 min-w-0 flex items-center gap-2.5">
-            {/* Leo Mascot Icon with Neon Glow (Transparent Background, No Green Dot) */}
+          <div className="flex-1 min-w-0 flex items-center gap-2">
+            {/* Leo Mascot Icon with Neon Glow (Prominent Size & Transparent) */}
             <button
               type="button"
               onClick={onToggleLeo}
               title="Leo Assistant"
               className="relative group shrink-0 focus:outline-none"
             >
-              <div className="w-10 h-10 sm:w-11 sm:h-11 flex items-center justify-center transition-all duration-200 group-hover:scale-105 active:scale-95 filter drop-shadow-[0_0_12px_rgba(249,115,22,0.45)]">
+              <div className="w-12 h-12 sm:w-14 sm:h-14 flex items-center justify-center transition-all duration-200 group-hover:scale-105 active:scale-95 filter drop-shadow-[0_0_14px_rgba(249,115,22,0.5)]">
                 <img 
                   src="/leo.svg" 
                   alt="Leo Mascot" 
@@ -118,7 +118,7 @@ export default function Header({
               className="relative p-1.5 rounded-xl bg-orange-500/10 dark:bg-orange-500/15 border border-orange-500/30 hover:border-brandOrange text-brandOrange active:scale-95 transition flex items-center gap-1.5 cursor-pointer shadow-xs"
               title="Leo"
             >
-              <div className="w-5 h-5 shrink-0 flex items-center justify-center">
+              <div className="w-6 h-6 sm:w-7 sm:h-7 shrink-0 flex items-center justify-center">
                 <img src="/leo.svg" alt="Leo" className="w-full h-full object-contain" />
               </div>
               <span className="text-[11px] font-extrabold pr-0.5 hidden xs:inline">Leo</span>
