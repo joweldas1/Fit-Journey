@@ -12,7 +12,7 @@ export default function CalorieGauge({ consumed = 0, target = 2400, lang = 'bn' 
   const strokeDashoffset = circumference - (percentage / 100) * circumference;
 
   return (
-    <div className="relative w-72 h-40 flex items-end justify-center mx-auto">
+    <div className="relative w-64 h-36 sm:w-72 sm:h-40 flex items-end justify-center mx-auto shrink-0">
       {/* SVG Semi-Circle Arc */}
       <svg 
         viewBox="0 0 260 145" 

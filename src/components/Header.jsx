@@ -62,7 +62,7 @@ export default function Header({
   return (
     <>
       {/* 1. Clean Sticky Header (No Unnecessary Bell on Top) */}
-      <header className="sticky top-0 z-40 w-full h-[66px] shrink-0 bg-white/95 dark:bg-[#09090B]/95 backdrop-blur-xl border-b border-slate-200 dark:border-[#27272A] px-4 sm:px-6 transition-colors duration-300">
+      <header className="sticky top-0 z-40 w-full h-[58px] sm:h-[66px] shrink-0 bg-white/95 dark:bg-[#09090B]/95 backdrop-blur-xl border-b border-slate-200 dark:border-[#27272A] px-3.5 sm:px-6 transition-colors duration-300">
         <div className="max-w-md mx-auto h-full flex items-center justify-between gap-2">
           
           {/* Brand Logo with Glowing Leo & Fit Journey Typography */}
@@ -74,7 +74,7 @@ export default function Header({
               title="Leo Assistant"
               className="relative group shrink-0 focus:outline-none"
             >
-              <div className="w-12 h-12 sm:w-14 sm:h-14 flex items-center justify-center transition-all duration-200 group-hover:scale-105 active:scale-95 filter drop-shadow-[0_0_14px_rgba(249,115,22,0.5)]">
+              <div className="w-11 h-11 sm:w-14 sm:h-14 flex items-center justify-center transition-all duration-200 group-hover:scale-105 active:scale-95 filter drop-shadow-[0_0_14px_rgba(249,115,22,0.5)]">
                 <img 
                   src="/leo.svg" 
                   alt="Leo Mascot" 

@@ -78,7 +78,7 @@ export default function LeoEntranceBanner({
       }`}
     >
       <div
-        className={`relative rounded-3xl p-3.5 sm:p-4 border shadow-2xl backdrop-blur-2xl overflow-hidden transition-all duration-300 ${
+        className={`relative rounded-2xl sm:rounded-3xl p-3 sm:p-4 border shadow-2xl backdrop-blur-2xl overflow-hidden transition-all duration-300 ${
           darkMode
             ? 'bg-[#121217]/95 border-[#27272A] text-slate-100 shadow-orange-500/10'
             : 'bg-white border-slate-200 text-slate-900 shadow-[0_4px_20px_rgba(0,0,0,0.06)]'
@@ -90,12 +90,12 @@ export default function LeoEntranceBanner({
           style={{ backgroundColor: scene.accentColor || '#F97316' }}
         />
 
-        <div className="flex items-start gap-3.5 relative z-10">
+        <div className="flex items-start gap-3 relative z-10">
           
           {/* Leo Animated Mascot Avatar (Prominent Size & Transparent) */}
           <div className="relative shrink-0 self-center sm:self-start pt-0.5">
             <div
-              className={`w-20 h-20 sm:w-24 sm:h-24 rounded-2xl flex items-center justify-center transition-all ${
+              className={`w-16 h-16 sm:w-22 sm:h-22 rounded-2xl flex items-center justify-center transition-all ${
                 darkMode
                   ? 'filter drop-shadow-[0_0_18px_rgba(249,115,22,0.5)]'
                   : 'filter drop-shadow-[0_0_16px_rgba(249,115,22,0.4)]'

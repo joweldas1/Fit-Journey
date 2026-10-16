@@ -276,7 +276,7 @@ export default function App() {
   const burnedCalories = exercises.reduce((acc, e) => acc + (e.caloriesBurned || 0), 0);
 
   return (
-    <div className={`h-[100dvh] max-h-[100dvh] w-full overflow-hidden flex flex-col transition-colors duration-300 ${darkMode ? 'bg-[#09090B] text-slate-100 selection:bg-orange-500 selection:text-white' : 'bg-[#F8FAFC] text-slate-900 selection:bg-orange-500 selection:text-white'}`}>
+    <div className={`fixed inset-0 h-[100dvh] max-h-[100dvh] w-full overflow-hidden flex flex-col transition-colors duration-300 ${darkMode ? 'bg-[#09090B] text-slate-100 selection:bg-orange-500 selection:text-white' : 'bg-[#F8FAFC] text-slate-900 selection:bg-orange-500 selection:text-white'}`}>
       
       <Toaster position="top-center" richColors theme={darkMode ? 'dark' : 'light'} />
 
@@ -390,11 +390,11 @@ export default function App() {
         onEditProfile={() => setShowOnboarding(true)}
       />
 
-      {/* Main Container - Smooth Mobile Responsive Layout (Fixes Quote Section Visibility) */}
-      <main className="flex-1 w-full max-w-md mx-auto flex flex-col min-h-0 overflow-y-auto px-4 sm:px-6 pt-2 pb-6">
+      {/* Main Container - Smooth Mobile Responsive Layout (Locked inside 100vh) */}
+      <main className="flex-1 w-full max-w-md mx-auto flex flex-col min-h-0 overflow-y-auto no-scrollbar px-3.5 sm:px-6 pt-1 sm:pt-2 pb-2 sm:pb-4">
         {/* Leo 3-5 Second Smart Situational Entrance Scene */}
         {showLeoBanner && (
-          <div className="mb-3 shrink-0">
+          <div className="mb-1.5 sm:mb-2.5 shrink-0">
             <LeoEntranceBanner
               isOpen={showLeoBanner}
               darkMode={darkMode}
@@ -424,7 +424,7 @@ export default function App() {
           <div className="flex-1 flex flex-col justify-between gap-1 animate-in fade-in duration-200">
             
             {/* Top: Calorie Gauge */}
-            <div className="flex flex-col items-center justify-center py-1 shrink-0">
+            <div className="flex flex-col items-center justify-center py-0.5 shrink-0">
               <CalorieGauge consumed={consumedCalories} target={targetCalories} lang={lang} />
             </div>
 
@@ -439,12 +439,12 @@ export default function App() {
             />
 
             {/* Bottom: Action Buttons & Status Dock */}
-            <div className="space-y-3 w-full shrink-0 pb-1">
-              <div className="grid grid-cols-2 gap-3 w-full">
+            <div className="space-y-2 sm:space-y-3 w-full shrink-0 pb-0.5">
+              <div className="grid grid-cols-2 gap-2.5 sm:gap-3 w-full">
                 <button 
                   type="button"
                   onClick={() => setIsAddFoodOpen(true)}
-                  className="flex items-center justify-center gap-2 py-3.5 px-4 rounded-2xl bg-gradient-to-r from-brandOrange via-orange-500 to-amber-500 hover:opacity-95 text-white font-bold text-sm shadow-lg shadow-orange-500/25 active:scale-95 transition-all"
+                  className="flex items-center justify-center gap-1.5 sm:gap-2 py-3 sm:py-3.5 px-3 sm:px-4 rounded-2xl bg-gradient-to-r from-brandOrange via-orange-500 to-amber-500 hover:opacity-95 text-white font-bold text-xs sm:text-sm shadow-lg shadow-orange-500/25 active:scale-95 transition-all"
                 >
                   <Plus className="w-4 h-4 stroke-[3]" />
                   <span>{txt.addFood}</span>
@@ -453,7 +453,7 @@ export default function App() {
                 <button 
                   type="button"
                   onClick={() => setIsExerciseOpen(true)}
-                  className="flex items-center justify-center gap-2 py-3.5 px-4 rounded-2xl bg-white dark:bg-darkCard/90 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-800 dark:text-slate-200 border border-slate-300/80 dark:border-slate-800 font-bold text-sm shadow-sm hover:shadow active:scale-95 transition-all"
+                  className="flex items-center justify-center gap-1.5 sm:gap-2 py-3 sm:py-3.5 px-3 sm:px-4 rounded-2xl bg-white dark:bg-darkCard/90 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-800 dark:text-slate-200 border border-slate-300/80 dark:border-slate-800 font-bold text-xs sm:text-sm shadow-sm hover:shadow active:scale-95 transition-all"
                 >
                   <Dumbbell className="w-4 h-4 text-teal-600 dark:text-teal-400 stroke-[2.5]" />
                   <span>{txt.logExercise}</span>
@@ -461,7 +461,7 @@ export default function App() {
               </div>
 
               {/* Status Dock */}
-              <div className="w-full grid grid-cols-3 divide-x divide-slate-200 dark:divide-slate-800 bg-white dark:bg-darkCard/80 border border-slate-200/90 dark:border-slate-800/80 rounded-2xl py-3 px-2 shadow-sm backdrop-blur-md text-center text-xs">
+              <div className="w-full grid grid-cols-3 divide-x divide-slate-200 dark:divide-slate-800 bg-white dark:bg-darkCard/80 border border-slate-200/90 dark:border-slate-800/80 rounded-2xl py-2 sm:py-3 px-2 shadow-sm backdrop-blur-md text-center text-xs">
                 <button
                   type="button"
                   onClick={() => setShowOnboarding(true)}

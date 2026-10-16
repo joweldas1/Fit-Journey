@@ -150,8 +150,8 @@ export default function MotivationalQuote({
   const quoteText = isBn ? activeQuote.bn : activeQuote.en;
 
   return (
-    <div className="w-full my-2.5 shrink-0 animate-in fade-in duration-300">
-      <div className="rounded-2xl bg-white dark:bg-[#161F33]/85 backdrop-blur-xl border border-slate-200 dark:border-slate-800/90 p-3.5 sm:p-4 shadow-[0_2px_12px_rgba(0,0,0,0.04)] dark:shadow-none hover:shadow-md transition-all">
+    <div className="w-full my-1 sm:my-2 shrink-0 animate-in fade-in duration-300">
+      <div className="rounded-2xl bg-white dark:bg-[#161F33]/85 backdrop-blur-xl border border-slate-200 dark:border-slate-800/90 p-3 sm:p-4 shadow-[0_2px_12px_rgba(0,0,0,0.04)] dark:shadow-none hover:shadow-md transition-all">
         
         {/* Top Header: Smart Insights & Refresh */}
         <div className="flex items-center justify-between pb-2 mb-2 border-b border-slate-200 dark:border-slate-800/80">
