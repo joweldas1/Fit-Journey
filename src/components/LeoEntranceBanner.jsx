@@ -92,13 +92,13 @@ export default function LeoEntranceBanner({
 
         <div className="flex items-start gap-3.5 relative z-10">
           
-          {/* Leo Animated Mascot Avatar */}
+          {/* Leo Animated Mascot Avatar (Transparent with Micro Status Dot) */}
           <div className="relative shrink-0 pt-0.5">
             <div
-              className={`w-14 h-14 sm:w-16 sm:h-16 rounded-2xl overflow-hidden p-0.5 border shadow-lg flex items-center justify-center transition-all ${
+              className={`w-14 h-14 sm:w-16 sm:h-16 rounded-2xl flex items-center justify-center transition-all ${
                 darkMode
-                  ? 'border-orange-500/40 bg-gradient-to-b from-[#181824] to-[#09090B] animate-pulse-glow'
-                  : 'border-teal-500/40 bg-gradient-to-b from-teal-50 to-white animate-pulse-glow-teal'
+                  ? 'filter drop-shadow-[0_0_14px_rgba(249,115,22,0.4)]'
+                  : 'filter drop-shadow-[0_0_14px_rgba(13,148,136,0.4)]'
               }`}
             >
               <img
@@ -108,10 +108,10 @@ export default function LeoEntranceBanner({
               />
             </div>
 
-            {/* Online Live Radar Dot */}
-            <span className="absolute -bottom-1 -right-1 flex h-3.5 w-3.5">
+            {/* Online Live Radar Dot (Micro Size) */}
+            <span className="absolute bottom-0.5 right-0.5 flex h-2 w-2">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-              <span className="relative inline-flex rounded-full h-3.5 w-3.5 bg-emerald-500 border-2 border-darkBg" />
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500 border border-slate-900" />
             </span>
           </div>
 
