@@ -215,16 +215,18 @@ export default function OnboardingModal({
             <button 
               type="button"
               onClick={() => setDarkMode(!darkMode)}
-              className="p-2 rounded-full bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700/80 text-slate-600 dark:text-amber-400 transition active:scale-95 border border-slate-200/60 dark:border-slate-700"
+              title={darkMode ? (lang === 'bn' ? 'লাইট মোড' : 'Light Mode') : (lang === 'bn' ? 'ডার্ক মোড' : 'Dark Mode')}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-100 hover:bg-slate-200 dark:bg-slate-800/90 dark:hover:bg-slate-700 text-xs font-semibold text-slate-700 dark:text-slate-200 transition active:scale-95 border border-slate-200/80 dark:border-slate-700/80 shadow-xs"
             >
-              {darkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+              {darkMode ? <Sun className="w-3.5 h-3.5 text-amber-400" /> : <Moon className="w-3.5 h-3.5 text-indigo-400" />}
+              <span>{darkMode ? (lang === 'bn' ? 'লাইট' : 'Light') : (lang === 'bn' ? 'নাইট' : 'Dark')}</span>
             </button>
 
             {onClose && (
               <button
                 type="button"
                 onClick={onClose}
-                className="p-2 rounded-full bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700/80 text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white transition active:scale-95 border border-slate-200/60 dark:border-slate-700"
+                className="p-1.5 rounded-full bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700/80 text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white transition active:scale-95 border border-slate-200/60 dark:border-slate-700"
                 title="Close"
               >
                 <X className="w-4 h-4" />
@@ -264,18 +266,23 @@ export default function OnboardingModal({
         {/* STEP 0: Welcome Screen */}
         {step === 0 && (
           <div className="text-center py-4 flex flex-col items-center animate-in fade-in zoom-in-95 duration-500 ease-out">
-            <div className="mb-4 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-orange-500/10 border border-orange-500/20 text-brandOrange text-[11px] font-medium tracking-wide">
-              <Sparkles className="w-3 h-3" />
+            <div className="mb-4 inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-orange-500/10 border border-orange-500/20 text-brandOrange text-[11px] font-semibold tracking-wide">
+              <Sparkles className="w-3.5 h-3.5 text-brandOrange" />
               <span>{lang === 'bn' ? 'AI স্মার্ট ফিটনেস' : 'AI Smart Fitness'}</span>
             </div>
 
-            <div className="relative mb-5">
-              <div className="w-20 h-20 rounded-3xl bg-gradient-to-tr from-brandOrange to-amber-500 flex items-center justify-center text-white shadow-xl shadow-orange-500/30">
-                <Flame className="w-10 h-10 fill-white/90" />
+            {/* Leo Mascot Floating Image (Transparent & Glowing) */}
+            <div className="relative mb-5 flex items-center justify-center">
+              <div className="w-24 h-24 sm:w-28 sm:h-28 flex items-center justify-center animate-float-gentle filter drop-shadow-[0_12px_28px_rgba(249,115,22,0.55)]">
+                <img 
+                  src="/leo.svg" 
+                  alt="Leo Mascot" 
+                  className="w-full h-full object-contain filter drop-shadow-[0_4px_16px_rgba(0,0,0,0.6)]" 
+                />
               </div>
             </div>
 
-            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 dark:text-white mb-2 leading-snug">
+            <h1 className="text-xl sm:text-2xl font-black tracking-tight text-slate-900 dark:text-white mb-2 leading-snug">
               {lang === 'bn' ? 'আপনার ফিটনেস যাত্রা শুরু হোক' : 'Begin Your Fitness Journey'}
             </h1>
             <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mb-8 max-w-xs leading-relaxed">
@@ -287,10 +294,10 @@ export default function OnboardingModal({
             <button
               type="button"
               onClick={() => setStep(1)}
-              className="w-full py-3.5 px-6 rounded-2xl bg-gradient-to-r from-teal-600 to-teal-500 hover:from-teal-500 hover:to-teal-600 text-white font-medium text-sm flex items-center justify-center gap-2 shadow-lg shadow-teal-600/30 active:scale-[0.98] transition-all duration-200"
+              className="w-full py-3.5 px-6 rounded-2xl bg-gradient-to-r from-brandOrange via-orange-500 to-amber-500 hover:opacity-95 text-white font-bold text-sm flex items-center justify-center gap-2 shadow-lg shadow-orange-500/25 active:scale-[0.98] transition-all duration-200"
             >
               <span>{lang === 'bn' ? 'শুরু করুন' : 'Get Started'}</span>
-              <ArrowRight className="w-4 h-4" />
+              <ArrowRight className="w-4 h-4 stroke-[2.5]" />
             </button>
           </div>
         )}
