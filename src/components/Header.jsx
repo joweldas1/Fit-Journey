@@ -247,13 +247,13 @@ export default function Header({
                   setIsDrawerOpen(false);
                   onEditProfile();
                 }}
-                className="w-full flex items-center justify-between px-3.5 py-3 rounded-2xl text-xs font-bold transition-all text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800/60 active:scale-[0.98]"
+                className="w-full flex items-center justify-between px-3.5 py-3 rounded-2xl text-xs font-bold transition-all text-left text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800/60 active:scale-[0.98]"
               >
-                <div className="flex items-center gap-3">
-                  <Target className="w-4 h-4 text-brandOrange" />
-                  <span>{isBn ? 'টার্গেট ওজন ও প্রোফাইল পরিবর্তন' : 'Edit Target Weight & Profile'}</span>
+                <div className="flex items-center gap-3 min-w-0 flex-1 text-left">
+                  <Target className="w-4 h-4 text-brandOrange shrink-0" />
+                  <span className="text-left leading-tight">{isBn ? 'টার্গেট ওজন ও প্রোফাইল পরিবর্তন' : 'Edit Target Weight & Profile'}</span>
                 </div>
-                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-orange-500/10 text-brandOrange border border-orange-500/20">
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-orange-500/10 text-brandOrange border border-orange-500/20 shrink-0 ml-2">
                   {profile?.targetWeight ? `${profile.targetWeight} kg` : 'Set'}
                 </span>
               </button>
