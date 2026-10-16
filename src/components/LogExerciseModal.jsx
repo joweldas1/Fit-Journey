@@ -57,14 +57,14 @@ export default function LogExerciseModal({ isOpen, onClose, onLogExercise, lang 
 
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-slate-950/75 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="w-full max-w-md bg-white dark:bg-[#161F33] rounded-t-[32px] sm:rounded-3xl p-6 shadow-2xl border border-slate-200/80 dark:border-slate-800 text-slate-800 dark:text-slate-100 max-h-[90vh] overflow-y-auto">
+      <div className="w-full max-w-md bg-white dark:bg-[#161F33] rounded-t-[32px] sm:rounded-3xl p-6 shadow-2xl border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-100 max-h-[90vh] overflow-y-auto">
         
-        <div className="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-slate-800">
+        <div className="flex items-center justify-between pb-4 border-b border-slate-200 dark:border-slate-800">
           <div className="flex items-center gap-2">
             <div className="p-2 rounded-xl bg-teal-500/10 text-teal-600 dark:text-teal-400">
-              <Dumbbell className="w-4 h-4" />
+              <Dumbbell className="w-4 h-4 stroke-[2.5]" />
             </div>
-            <h3 className="text-base font-semibold">
+            <h3 className="text-base font-bold text-slate-900 dark:text-white">
               {lang === 'bn' ? 'ব্যায়াম লগ করুন (Smart AI)' : 'Log Workout (Smart AI)'}
             </h3>
           </div>
@@ -73,7 +73,7 @@ export default function LogExerciseModal({ isOpen, onClose, onLogExercise, lang 
           </button>
         </div>
 
-        <p className="text-xs text-slate-400 my-3">
+        <p className="text-xs text-slate-600 dark:text-slate-400 my-3 font-semibold">
           {lang === 'bn' ? 'কী ব্যায়াম করলেন ও কয়টি সেট দিলেন লিখুন:' : 'Enter what exercise and sets you performed:'}
         </p>
 

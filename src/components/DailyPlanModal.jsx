@@ -61,10 +61,10 @@ export default function DailyPlanModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-slate-950/75 backdrop-blur-md animate-in fade-in duration-200">
-      <div className="w-full max-w-lg bg-white dark:bg-[#151D2E] rounded-t-[32px] sm:rounded-3xl p-5 sm:p-6 shadow-2xl border border-slate-200/80 dark:border-slate-800 text-slate-800 dark:text-slate-100 max-h-[92vh] overflow-y-auto">
+      <div className="w-full max-w-lg bg-white dark:bg-[#151D2E] rounded-t-[32px] sm:rounded-3xl p-5 sm:p-6 shadow-2xl border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-100 max-h-[92vh] overflow-y-auto">
         
         {/* Header */}
-        <div className="flex items-center justify-between pb-3.5 border-b border-slate-100 dark:border-slate-800 gap-2">
+        <div className="flex items-center justify-between pb-3.5 border-b border-slate-200 dark:border-slate-800 gap-2">
           <div className="flex items-center gap-2.5 min-w-0 flex-1">
             <div className="p-2 rounded-xl bg-orange-500/10 text-brandOrange border border-orange-500/20 shrink-0">
               <Calendar className="w-4 h-4" />
@@ -73,7 +73,7 @@ export default function DailyPlanModal({
               <h3 className="text-sm sm:text-base font-bold text-slate-900 dark:text-white truncate">
                 {isBn ? 'আজকের ডায়েট ও ক্যালোরি পরিকল্পনা' : "Today's Calorie & Meal Plan"}
               </h3>
-              <p className="text-[11px] text-slate-400 truncate">
+              <p className="text-[11px] text-slate-600 dark:text-slate-400 font-medium truncate">
                 {isBn ? 'সারাদিন কী কী খাওয়ার ইচ্ছা আছে লিখুন' : 'Describe your planned meals in your own words'}
               </p>
             </div>
@@ -105,7 +105,7 @@ export default function DailyPlanModal({
 
         {/* Example Presets */}
         <div className="my-3">
-          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1.5">
+          <span className="text-[10px] font-extrabold text-slate-600 dark:text-slate-400 uppercase tracking-wider block mb-1.5">
             {isBn ? 'উদাহরণ ট্যাপ করে শুরু করুন:' : 'Tap an example to begin:'}
           </span>
           <div className="flex flex-wrap gap-1.5">
@@ -114,7 +114,7 @@ export default function DailyPlanModal({
                 key={idx}
                 type="button"
                 onClick={() => setPlanText(ex.text)}
-                className="text-[11px] px-2.5 py-1 rounded-full bg-slate-100 hover:bg-orange-500/10 hover:text-brandOrange dark:bg-slate-800/70 text-slate-600 dark:text-slate-300 border border-slate-200/60 dark:border-slate-700/60 transition"
+                className="text-[11px] px-2.5 py-1 rounded-full bg-slate-100 hover:bg-orange-500/10 hover:text-brandOrange dark:bg-slate-800/70 text-slate-700 dark:text-slate-300 font-semibold border border-slate-200 dark:border-slate-700/60 transition"
               >
                 + {ex.label}
               </button>

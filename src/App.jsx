@@ -276,7 +276,7 @@ export default function App() {
   const burnedCalories = exercises.reduce((acc, e) => acc + (e.caloriesBurned || 0), 0);
 
   return (
-    <div className={`h-[100dvh] max-h-[100dvh] w-full overflow-hidden flex flex-col transition-colors duration-300 ${darkMode ? 'bg-[#09090B] text-slate-100 selection:bg-orange-500 selection:text-white' : 'bg-[#FFFFFF] text-slate-800 selection:bg-teal-500 selection:text-white'}`}>
+    <div className={`h-[100dvh] max-h-[100dvh] w-full overflow-hidden flex flex-col transition-colors duration-300 ${darkMode ? 'bg-[#09090B] text-slate-100 selection:bg-orange-500 selection:text-white' : 'bg-[#F8FAFC] text-slate-900 selection:bg-orange-500 selection:text-white'}`}>
       
       <Toaster position="top-center" richColors theme={darkMode ? 'dark' : 'light'} />
 
@@ -453,22 +453,22 @@ export default function App() {
                 <button 
                   type="button"
                   onClick={() => setIsExerciseOpen(true)}
-                  className="flex items-center justify-center gap-2 py-3.5 px-4 rounded-2xl bg-white/5 dark:bg-darkCard/90 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-800 dark:text-slate-200 border border-slate-200/80 dark:border-slate-800 font-semibold text-sm shadow-sm active:scale-95 transition-all"
+                  className="flex items-center justify-center gap-2 py-3.5 px-4 rounded-2xl bg-white dark:bg-darkCard/90 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-800 dark:text-slate-200 border border-slate-300/80 dark:border-slate-800 font-bold text-sm shadow-sm hover:shadow active:scale-95 transition-all"
                 >
-                  <Dumbbell className="w-4 h-4 text-teal-400" />
+                  <Dumbbell className="w-4 h-4 text-teal-600 dark:text-teal-400 stroke-[2.5]" />
                   <span>{txt.logExercise}</span>
                 </button>
               </div>
 
               {/* Status Dock */}
-              <div className="w-full grid grid-cols-3 divide-x divide-slate-200/70 dark:divide-slate-800/80 bg-white/60 dark:bg-darkCard/80 border border-slate-200/80 dark:border-slate-800/80 rounded-2xl py-3 px-2 shadow-sm backdrop-blur-md text-center text-xs">
+              <div className="w-full grid grid-cols-3 divide-x divide-slate-200 dark:divide-slate-800 bg-white dark:bg-darkCard/80 border border-slate-200/90 dark:border-slate-800/80 rounded-2xl py-3 px-2 shadow-sm backdrop-blur-md text-center text-xs">
                 <button
                   type="button"
                   onClick={() => setShowOnboarding(true)}
                   className="hover:bg-orange-500/10 rounded-xl transition text-center px-1 group cursor-pointer"
                   title={lang === 'bn' ? 'টার্গেট ওজন ও প্রোফাইল পরিবর্তন করুন' : 'Click to edit target weight'}
                 >
-                  <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider flex items-center justify-center gap-1">
+                  <span className="text-[10px] text-slate-600 dark:text-slate-400 uppercase font-black tracking-wider flex items-center justify-center gap-1">
                     <span>{txt.goal}</span>
                     <span className="text-[9px] text-brandOrange opacity-75 group-hover:opacity-100 transition">✏️</span>
                   </span>
@@ -477,12 +477,12 @@ export default function App() {
                   </p>
                 </button>
                 <div>
-                  <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider">{txt.burned}</span>
-                  <p className="font-extrabold text-teal-500 dark:text-teal-400 mt-0.5">-{burnedCalories} kcal</p>
+                  <span className="text-[10px] text-slate-600 dark:text-slate-400 uppercase font-black tracking-wider">{txt.burned}</span>
+                  <p className="font-extrabold text-teal-600 dark:text-teal-400 mt-0.5">-{burnedCalories} kcal</p>
                 </div>
                 <div>
-                  <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider">{txt.mealsLogged}</span>
-                  <p className="font-extrabold text-brandOrange mt-0.5">{foods.length} {txt.items}</p>
+                  <span className="text-[10px] text-slate-600 dark:text-slate-400 uppercase font-black tracking-wider">{txt.mealsLogged}</span>
+                  <p className="font-extrabold text-orange-600 dark:text-brandOrange mt-0.5">{foods.length} {txt.items}</p>
                 </div>
               </div>
 

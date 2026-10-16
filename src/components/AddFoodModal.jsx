@@ -183,15 +183,15 @@ export default function AddFoodModal({ isOpen, onClose, onAddFood, lang = 'bn' }
 
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-slate-950/75 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="w-full max-w-md bg-white dark:bg-[#161F33] rounded-t-[32px] sm:rounded-3xl p-6 shadow-2xl border border-slate-200/80 dark:border-slate-800 text-slate-800 dark:text-slate-100 max-h-[90vh] overflow-y-auto">
+      <div className="w-full max-w-md bg-white dark:bg-[#161F33] rounded-t-[32px] sm:rounded-3xl p-6 shadow-2xl border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-100 max-h-[90vh] overflow-y-auto">
         
         {/* Header */}
-        <div className="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-slate-800">
+        <div className="flex items-center justify-between pb-4 border-b border-slate-200 dark:border-slate-800">
           <div className="flex items-center gap-2">
             <div className="p-2 rounded-xl bg-orange-500/10 text-brandOrange">
-              <Utensils className="w-4 h-4" />
+              <Utensils className="w-4 h-4 stroke-[2.5]" />
             </div>
-            <h3 className="text-base font-semibold">
+            <h3 className="text-base font-bold text-slate-900 dark:text-white">
               {lang === 'bn' ? 'খাবার যোগ করুন (Smart Search)' : 'Add Food (Smart Search)'}
             </h3>
           </div>
@@ -202,10 +202,10 @@ export default function AddFoodModal({ isOpen, onClose, onAddFood, lang = 'bn' }
 
         {/* Meal Category */}
         <div className="my-4">
-          <label className="text-[11px] font-medium text-slate-400 block mb-2">
+          <label className="text-[11px] font-bold text-slate-600 dark:text-slate-400 block mb-2">
             {lang === 'bn' ? 'মিলের সময় নির্বাচন করুন:' : 'Select Meal Time:'}
           </label>
-          <div className="grid grid-cols-4 gap-1.5 text-xs font-medium">
+          <div className="grid grid-cols-4 gap-1.5 text-xs font-semibold">
             {[
               { id: 'breakfast', bn: 'ব্রেকফাস্ট', en: 'Breakfast' },
               { id: 'lunch', bn: 'লাঞ্চ', en: 'Lunch' },
@@ -218,8 +218,8 @@ export default function AddFoodModal({ isOpen, onClose, onAddFood, lang = 'bn' }
                 onClick={() => setSelectedMeal(m.id)}
                 className={`py-2 px-1 rounded-xl text-center transition ${
                   selectedMeal === m.id
-                    ? 'bg-brandOrange text-white shadow-md shadow-orange-500/20 font-semibold'
-                    : 'bg-slate-100 dark:bg-slate-800/80 text-slate-600 dark:text-slate-300'
+                    ? 'bg-brandOrange text-white shadow-md shadow-orange-500/20 font-bold'
+                    : 'bg-slate-100 hover:bg-slate-200 dark:bg-slate-800/80 text-slate-700 dark:text-slate-300 border border-slate-200/80 dark:border-transparent'
                 }`}
               >
                 {lang === 'bn' ? m.bn : m.en}

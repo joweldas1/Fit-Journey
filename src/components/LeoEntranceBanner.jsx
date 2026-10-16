@@ -81,13 +81,13 @@ export default function LeoEntranceBanner({
         className={`relative rounded-3xl p-3.5 sm:p-4 border shadow-2xl backdrop-blur-2xl overflow-hidden transition-all duration-300 ${
           darkMode
             ? 'bg-[#121217]/95 border-[#27272A] text-slate-100 shadow-orange-500/10'
-            : 'bg-white/95 border-slate-200/90 text-slate-800 shadow-teal-500/10'
+            : 'bg-white border-slate-200 text-slate-900 shadow-[0_4px_20px_rgba(0,0,0,0.06)]'
         }`}
       >
         {/* Soft Ambient Radial Glow */}
         <div
           className="absolute -left-10 -top-10 w-36 h-36 rounded-full blur-3xl pointer-events-none opacity-25"
-          style={{ backgroundColor: scene.accentColor || (darkMode ? '#F97316' : '#0D9488') }}
+          style={{ backgroundColor: scene.accentColor || '#F97316' }}
         />
 
         <div className="flex items-start gap-3.5 relative z-10">
@@ -98,7 +98,7 @@ export default function LeoEntranceBanner({
               className={`w-20 h-20 sm:w-24 sm:h-24 rounded-2xl flex items-center justify-center transition-all ${
                 darkMode
                   ? 'filter drop-shadow-[0_0_18px_rgba(249,115,22,0.5)]'
-                  : 'filter drop-shadow-[0_0_18px_rgba(13,148,136,0.5)]'
+                  : 'filter drop-shadow-[0_0_16px_rgba(249,115,22,0.4)]'
               }`}
             >
               <img
@@ -117,12 +117,12 @@ export default function LeoEntranceBanner({
                   className={`text-[9.5px] sm:text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full border ${
                     darkMode
                       ? 'bg-orange-500/15 text-brandOrange border-orange-500/30'
-                      : 'bg-teal-500/15 text-teal-700 border-teal-500/30'
+                      : 'bg-orange-500/10 text-orange-700 border-orange-500/25'
                   }`}
                 >
                   {scene.badge}
                 </span>
-                <span className="text-[11px] font-extrabold text-slate-400">
+                <span className="text-[11px] font-extrabold text-slate-500 dark:text-slate-400">
                   {lang === 'bn' ? 'লিও' : 'Leo'}
                 </span>
               </div>
@@ -132,7 +132,7 @@ export default function LeoEntranceBanner({
                 type="button"
                 onClick={handleClose}
                 aria-label="Close Leo Scene"
-                className="p-1 rounded-xl text-slate-400 hover:text-slate-200 hover:bg-slate-500/10 transition"
+                className="p-1 rounded-xl text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-500/10 transition"
               >
                 <X className="w-3.5 h-3.5" />
               </button>
@@ -142,7 +142,7 @@ export default function LeoEntranceBanner({
             <h4 className="text-xs sm:text-sm font-black text-slate-900 dark:text-white leading-tight">
               {scene.title}
             </h4>
-            <p className="text-xs sm:text-[12.5px] font-medium text-slate-600 dark:text-slate-300 mt-0.5 leading-snug">
+            <p className="text-xs sm:text-[12.5px] font-medium text-slate-700 dark:text-slate-300 mt-0.5 leading-snug">
               {scene.message}
             </p>
 
@@ -152,11 +152,7 @@ export default function LeoEntranceBanner({
                 <button
                   type="button"
                   onClick={handlePrimaryAction}
-                  className={`px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl text-xs font-bold transition-all duration-150 active:scale-95 flex items-center gap-1.5 cursor-pointer shadow-md ${
-                    darkMode
-                      ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white hover:opacity-95 shadow-orange-500/25'
-                      : 'bg-gradient-to-r from-teal-600 to-emerald-600 text-white hover:opacity-95 shadow-teal-500/25'
-                  }`}
+                  className="px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl text-xs font-bold transition-all duration-150 active:scale-95 flex items-center gap-1.5 cursor-pointer shadow-md bg-gradient-to-r from-brandOrange via-orange-500 to-amber-500 text-white hover:opacity-95 shadow-orange-500/25"
                 >
                   <span>{scene.actionLabel}</span>
                   <ArrowRight className="w-3 h-3 stroke-[3]" />
@@ -167,7 +163,7 @@ export default function LeoEntranceBanner({
                 <button
                   type="button"
                   onClick={handleSecondaryAction}
-                  className="px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-xl text-xs font-semibold text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 bg-slate-100 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/60 transition active:scale-95"
+                  className="px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white bg-slate-100 hover:bg-slate-200 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60 transition active:scale-95"
                 >
                   {scene.secondaryActionLabel}
                 </button>
@@ -181,9 +177,7 @@ export default function LeoEntranceBanner({
         {/* 5.0s Auto-Countdown Indicator Line */}
         <div className="absolute bottom-0 left-0 right-0 h-[2.5px] bg-slate-500/10 overflow-hidden">
           <div
-            className={`h-full transition-all duration-75 ease-linear ${
-              darkMode ? 'bg-orange-500' : 'bg-teal-500'
-            }`}
+            className="h-full bg-gradient-to-r from-brandOrange to-amber-500 transition-all duration-75 ease-linear"
             style={{ width: `${progress}%` }}
           />
         </div>

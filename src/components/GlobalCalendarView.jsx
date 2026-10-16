@@ -110,7 +110,7 @@ export default function GlobalCalendarView({ profile, lang = 'bn' }) {
     <div className="space-y-4 animate-in fade-in duration-300">
       
       {/* 1. Sleek & Compact Monthly Calendar Card */}
-      <div className="bg-white dark:bg-darkCard p-4 sm:p-5 rounded-[24px] border border-slate-100 dark:border-slate-800/80 shadow-md">
+      <div className="bg-white dark:bg-darkCard p-4 sm:p-5 rounded-[24px] border border-slate-200 dark:border-slate-800/80 shadow-[0_2px_12px_rgba(0,0,0,0.04)]">
         
         {/* Calendar Nav */}
         <div className="flex justify-between items-center mb-3">
@@ -143,7 +143,7 @@ export default function GlobalCalendarView({ profile, lang = 'bn' }) {
         {/* Days Header */}
         <div className="grid grid-cols-7 gap-1 text-center mb-2">
           {weekDays.map((d, i) => (
-            <span key={i} className="text-[11px] font-semibold text-slate-400 py-1">{d}</span>
+            <span key={i} className="text-[11px] font-bold text-slate-600 dark:text-slate-400 py-1">{d}</span>
           ))}
         </div>
 
@@ -192,7 +192,7 @@ export default function GlobalCalendarView({ profile, lang = 'bn' }) {
         </div>
 
         {/* Legend */}
-        <div className="flex items-center justify-center gap-4 mt-4 pt-3 border-t border-slate-100 dark:border-slate-800/80 text-[11px] text-slate-400">
+        <div className="flex items-center justify-center gap-4 mt-4 pt-3 border-t border-slate-200 dark:border-slate-800/80 text-[11px] font-semibold text-slate-600 dark:text-slate-400">
           <span className="flex items-center gap-1.5">
             <span className="w-2 h-2 rounded-full bg-emerald-500" /> {lang === 'bn' ? 'লক্ষ্য পূরণ' : 'Target Met'}
           </span>
@@ -206,12 +206,12 @@ export default function GlobalCalendarView({ profile, lang = 'bn' }) {
       </div>
 
       {/* 2. Interactive Previous / Selected Day History Inspector */}
-      <div className="bg-white dark:bg-darkCard p-4 sm:p-5 rounded-[24px] border border-slate-100 dark:border-slate-800/80 shadow-md">
+      <div className="bg-white dark:bg-darkCard p-4 sm:p-5 rounded-[24px] border border-slate-200 dark:border-slate-800/80 shadow-[0_2px_12px_rgba(0,0,0,0.04)]">
         
         {/* Selected Date Header */}
-        <div className="flex items-center justify-between pb-3 mb-3 border-b border-slate-100 dark:border-slate-800/80">
+        <div className="flex items-center justify-between pb-3 mb-3 border-b border-slate-200 dark:border-slate-800/80">
           <div>
-            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+            <span className="text-[10px] font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
               {isSelectedDayToday 
                 ? (lang === 'bn' ? 'আজকের লাইভ রেকর্ড' : "Today's Live Record")
                 : (lang === 'bn' ? 'পূর্ববর্তী দিনের রেকর্ড' : 'Past Day Record')}
@@ -223,10 +223,10 @@ export default function GlobalCalendarView({ profile, lang = 'bn' }) {
 
           {/* Calorie Pill for this Day */}
           <div className="text-right">
-            <div className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-xs font-bold">
+            <div className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-xs font-bold border border-slate-200 dark:border-transparent">
               <Flame className="w-3.5 h-3.5 text-brandOrange" />
-              <span className="text-slate-800 dark:text-slate-100">{selectedTotalCal}</span>
-              <span className="text-slate-400 font-normal">/ {targetCalories} kcal</span>
+              <span className="text-slate-900 dark:text-slate-100 font-extrabold">{selectedTotalCal}</span>
+              <span className="text-slate-600 dark:text-slate-400 font-semibold">/ {targetCalories} kcal</span>
             </div>
           </div>
         </div>
@@ -276,7 +276,7 @@ export default function GlobalCalendarView({ profile, lang = 'bn' }) {
       </div>
 
       {/* 3. Weekly Weight Logger Card */}
-      <div className="bg-white dark:bg-darkCard p-4 sm:p-5 rounded-[24px] border border-slate-100 dark:border-slate-800/80 shadow-md">
+      <div className="bg-white dark:bg-darkCard p-4 sm:p-5 rounded-[24px] border border-slate-200 dark:border-slate-800/80 shadow-[0_2px_12px_rgba(0,0,0,0.04)]">
         <div className="flex justify-between items-center mb-3">
           <div className="flex items-center gap-2">
             <TrendingUp className="w-4 h-4 text-brandOrange" />
@@ -284,7 +284,7 @@ export default function GlobalCalendarView({ profile, lang = 'bn' }) {
               {lang === 'bn' ? 'সাপ্তাহিক ওজন রেকর্ড' : 'Log Weekly Weight'}
             </h3>
           </div>
-          <span className="text-xs font-semibold text-slate-500">
+          <span className="text-xs font-bold text-slate-700 dark:text-slate-400">
             {profile?.currentWeight} kg ➔ {profile?.targetWeight} kg
           </span>
         </div>

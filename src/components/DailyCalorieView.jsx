@@ -63,38 +63,38 @@ export default function DailyCalorieView({
     <div className="space-y-4 animate-in fade-in duration-300">
       
       {/* Top Target Overview Card */}
-      <div className="bg-white dark:bg-darkCard p-5 rounded-[28px] border border-slate-100 dark:border-slate-800 shadow-sm">
+      <div className="bg-white dark:bg-darkCard p-5 rounded-[28px] border border-slate-200 dark:border-slate-800 shadow-[0_2px_12px_rgba(0,0,0,0.04)]">
         <div className="flex justify-between items-center mb-3">
           <div>
-            <h2 className="text-base font-semibold text-slate-900 dark:text-white">
+            <h2 className="text-base font-bold text-slate-900 dark:text-white">
               {lang === 'bn' ? 'আজকের ক্যালোরি সারসংক্ষেপ' : 'Today’s Calorie Summary'}
             </h2>
-            <p className="text-xs text-slate-400">
+            <p className="text-xs font-semibold text-slate-600 dark:text-slate-400">
               {lang === 'bn' ? `টার্গেট: ${targetCalories} kcal` : `Target: ${targetCalories} kcal`}
             </p>
           </div>
           <button
             onClick={onOpenAddFood}
-            className="p-2.5 rounded-2xl bg-brandOrange text-white text-xs font-medium flex items-center gap-1 shadow-md shadow-orange-500/20 active:scale-95 transition"
+            className="p-2.5 rounded-2xl bg-gradient-to-r from-brandOrange to-orange-500 text-white text-xs font-bold flex items-center gap-1 shadow-md shadow-orange-500/25 active:scale-95 transition"
           >
-            <Plus className="w-4 h-4" />
+            <Plus className="w-4 h-4 stroke-[3]" />
             <span>{lang === 'bn' ? 'খাবার যোগ' : 'Add Food'}</span>
           </button>
         </div>
 
         {/* Live Calorie Split */}
-        <div className="grid grid-cols-2 gap-3 p-4 rounded-2xl bg-slate-50 dark:bg-darkSurface border border-slate-100 dark:border-slate-800/80 mb-4 text-center">
+        <div className="grid grid-cols-2 gap-3 p-4 rounded-2xl bg-slate-100/70 dark:bg-darkSurface border border-slate-200 dark:border-slate-800/80 mb-4 text-center">
           <div>
-            <span className="text-[10px] text-slate-400 uppercase font-semibold">
+            <span className="text-[10px] text-slate-600 dark:text-slate-400 uppercase font-black tracking-wider">
               {lang === 'bn' ? 'খাওয়া হয়েছে' : 'Consumed'}
             </span>
-            <p className="text-2xl font-bold text-brandOrange">{consumedCalories} <span className="text-xs font-normal">kcal</span></p>
+            <p className="text-2xl font-black text-orange-600 dark:text-brandOrange">{consumedCalories} <span className="text-xs font-semibold">kcal</span></p>
           </div>
           <div className="border-l border-slate-200 dark:border-slate-800">
-            <span className="text-[10px] text-slate-400 uppercase font-semibold">
+            <span className="text-[10px] text-slate-600 dark:text-slate-400 uppercase font-black tracking-wider">
               {lang === 'bn' ? 'টার্গেট বাকি' : 'Remaining'}
             </span>
-            <p className="text-2xl font-bold text-slate-700 dark:text-slate-300">{remaining} <span className="text-xs font-normal">kcal</span></p>
+            <p className="text-2xl font-black text-slate-900 dark:text-slate-200">{remaining} <span className="text-xs font-semibold">kcal</span></p>
           </div>
         </div>
 
@@ -102,13 +102,13 @@ export default function DailyCalorieView({
         <div className="space-y-2.5">
           {/* Protein */}
           <div>
-            <div className="flex justify-between text-xs font-medium mb-1">
-              <span className="text-macroProtein font-semibold">{lang === 'bn' ? 'প্রোটিন' : 'Protein'}</span>
-              <span className="text-slate-400">{consumedProtein}g / {targetProtein}g</span>
+            <div className="flex justify-between text-xs font-bold mb-1">
+              <span className="text-teal-600 dark:text-macroProtein font-extrabold">{lang === 'bn' ? 'প্রোটিন' : 'Protein'}</span>
+              <span className="text-slate-600 dark:text-slate-400">{consumedProtein}g / {targetProtein}g</span>
             </div>
-            <div className="w-full h-2 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
+            <div className="w-full h-2 rounded-full bg-slate-200 dark:bg-slate-800 overflow-hidden">
               <div 
-                className="h-full rounded-full bg-macroProtein transition-all duration-500" 
+                className="h-full rounded-full bg-teal-500 dark:bg-macroProtein transition-all duration-500" 
                 style={{ width: `${Math.min((consumedProtein / targetProtein) * 100, 100)}%` }}
               />
             </div>
@@ -116,13 +116,13 @@ export default function DailyCalorieView({
 
           {/* Carbs */}
           <div>
-            <div className="flex justify-between text-xs font-medium mb-1">
-              <span className="text-macroCarb font-semibold">{lang === 'bn' ? 'কার্বস' : 'Carbs'}</span>
-              <span className="text-slate-400">{consumedCarbs}g / {targetCarbs}g</span>
+            <div className="flex justify-between text-xs font-bold mb-1">
+              <span className="text-sky-600 dark:text-macroCarb font-extrabold">{lang === 'bn' ? 'কার্বস' : 'Carbs'}</span>
+              <span className="text-slate-600 dark:text-slate-400">{consumedCarbs}g / {targetCarbs}g</span>
             </div>
-            <div className="w-full h-2 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
+            <div className="w-full h-2 rounded-full bg-slate-200 dark:bg-slate-800 overflow-hidden">
               <div 
-                className="h-full rounded-full bg-macroCarb transition-all duration-500" 
+                className="h-full rounded-full bg-sky-500 dark:bg-macroCarb transition-all duration-500" 
                 style={{ width: `${Math.min((consumedCarbs / targetCarbs) * 100, 100)}%` }}
               />
             </div>
@@ -130,13 +130,13 @@ export default function DailyCalorieView({
 
           {/* Fat */}
           <div>
-            <div className="flex justify-between text-xs font-medium mb-1">
-              <span className="text-macroFat font-semibold">{lang === 'bn' ? 'ফ্যাট' : 'Fat'}</span>
-              <span className="text-slate-400">{consumedFat}g / {targetFat}g</span>
+            <div className="flex justify-between text-xs font-bold mb-1">
+              <span className="text-amber-600 dark:text-macroFat font-extrabold">{lang === 'bn' ? 'ফ্যাট' : 'Fat'}</span>
+              <span className="text-slate-600 dark:text-slate-400">{consumedFat}g / {targetFat}g</span>
             </div>
-            <div className="w-full h-2 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
+            <div className="w-full h-2 rounded-full bg-slate-200 dark:bg-slate-800 overflow-hidden">
               <div 
-                className="h-full rounded-full bg-macroFat transition-all duration-500" 
+                className="h-full rounded-full bg-amber-500 dark:bg-macroFat transition-all duration-500" 
                 style={{ width: `${Math.min((consumedFat / targetFat) * 100, 100)}%` }}
               />
             </div>
@@ -151,30 +151,30 @@ export default function DailyCalorieView({
           const mealTotal = items.reduce((acc, i) => acc + (i.calories || 0), 0);
 
           return (
-            <div key={sec.id} className="bg-white dark:bg-darkCard p-4 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm">
-              <div className="flex justify-between items-center mb-2 pb-1 border-b border-slate-100 dark:border-slate-800/80">
-                <span className="text-xs font-bold text-slate-800 dark:text-slate-200">{sec.title}</span>
-                <span className="text-xs font-semibold text-brandOrange">{mealTotal} kcal</span>
+            <div key={sec.id} className="bg-white dark:bg-darkCard p-4 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-[0_2px_8px_rgba(0,0,0,0.03)]">
+              <div className="flex justify-between items-center mb-2 pb-1.5 border-b border-slate-200 dark:border-slate-800/80">
+                <span className="text-xs font-extrabold text-slate-900 dark:text-slate-200">{sec.title}</span>
+                <span className="text-xs font-black text-orange-600 dark:text-brandOrange">{mealTotal} kcal</span>
               </div>
 
               {items.length === 0 ? (
-                <p className="text-[11px] text-slate-400 py-1 italic">
+                <p className="text-[11px] text-slate-500 dark:text-slate-400 py-1.5 font-medium">
                   {lang === 'bn' ? 'এই সময়ে এখনো কোনো খাবার যোগ করা হয়নি' : 'No food logged for this meal'}
                 </p>
               ) : (
                 <div className="space-y-2">
                   {items.map((item, idx) => (
-                    <div key={idx} className="flex justify-between items-center p-2.5 rounded-xl bg-slate-50 dark:bg-darkSurface border border-slate-100 dark:border-slate-800">
+                    <div key={idx} className="flex justify-between items-center p-2.5 rounded-xl bg-slate-50 dark:bg-darkSurface border border-slate-200/80 dark:border-slate-800">
                       <div>
-                        <h4 className="text-xs font-semibold text-slate-900 dark:text-white">
+                        <h4 className="text-xs font-bold text-slate-900 dark:text-white">
                           {getFoodDisplayName(item)}
                         </h4>
-                        <p className="text-[10px] text-slate-400">
+                        <p className="text-[10.5px] font-medium text-slate-600 dark:text-slate-400">
                           {getPortionDisplayName(item.portion)} • P: {item.protein}g | C: {item.carbs}g | F: {item.fat}g
                         </p>
                       </div>
                       <div className="flex items-center gap-2">
-                        <span className="text-xs font-bold text-slate-700 dark:text-slate-200">+{item.calories}</span>
+                        <span className="text-xs font-black text-slate-900 dark:text-slate-200">+{item.calories}</span>
                         <button
                           onClick={() => onDeleteFood(item.id || idx)}
                           className="p-1 rounded-lg text-slate-400 hover:text-rose-500 transition"

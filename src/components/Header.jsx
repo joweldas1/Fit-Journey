@@ -39,7 +39,7 @@ export default function Header({
   const navItems = [
     { 
       id: 'journey', 
-      label: 'Fit Journey', 
+      label: isBn ? 'হোম ড্যাশবোর্ড' : 'Home Dashboard', 
       icon: Compass 
     },
     { 
@@ -62,7 +62,7 @@ export default function Header({
   return (
     <>
       {/* 1. Clean Sticky Header (No Unnecessary Bell on Top) */}
-      <header className="sticky top-0 z-40 w-full h-[66px] shrink-0 bg-white/95 dark:bg-[#09090B]/95 backdrop-blur-xl border-b border-slate-200/80 dark:border-[#27272A] px-4 sm:px-6 transition-colors duration-300">
+      <header className="sticky top-0 z-40 w-full h-[66px] shrink-0 bg-white/95 dark:bg-[#09090B]/95 backdrop-blur-xl border-b border-slate-200 dark:border-[#27272A] px-4 sm:px-6 transition-colors duration-300">
         <div className="max-w-md mx-auto h-full flex items-center justify-between gap-2">
           
           {/* Brand Logo with Glowing Leo & Fit Journey Typography */}
@@ -99,7 +99,7 @@ export default function Header({
                 </div>
               </div>
 
-              <p className="text-[10.5px] font-semibold text-slate-500 dark:text-slate-400 mt-1.5 truncate flex items-center gap-1.5 leading-none">
+              <p className="text-[10.5px] font-semibold text-slate-600 dark:text-slate-400 mt-1.5 truncate flex items-center gap-1.5 leading-none">
                 <span>{isBn ? 'ডেইলি টার্গেট:' : 'Daily Target:'}</span>
                 <span className="font-black text-brandOrange text-[11px] tracking-tight">
                   {targetCal}
@@ -127,7 +127,7 @@ export default function Header({
             <button
               type="button"
               onClick={() => setLang(lang === 'bn' ? 'en' : 'bn')}
-              className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800/90 text-slate-700 dark:text-slate-200 text-xs font-bold border border-slate-200/80 dark:border-slate-700/80 active:scale-95 transition"
+              className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800/90 text-slate-700 dark:text-slate-200 text-xs font-bold border border-slate-200 dark:border-slate-700/80 active:scale-95 transition"
               title="Change Language"
             >
               <Globe className="w-3.5 h-3.5 text-brandOrange" />
@@ -138,7 +138,7 @@ export default function Header({
             <button
               type="button"
               onClick={() => setDarkMode(!darkMode)}
-              className="p-1.5 rounded-xl bg-slate-100 dark:bg-slate-800/90 text-slate-600 dark:text-amber-400 border border-slate-200/80 dark:border-slate-700/80 active:scale-95 transition"
+              className="p-1.5 rounded-xl bg-slate-100 dark:bg-slate-800/90 text-slate-700 dark:text-amber-400 border border-slate-200 dark:border-slate-700/80 active:scale-95 transition"
               title="Toggle Theme"
             >
               {darkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
@@ -148,7 +148,7 @@ export default function Header({
             <button
               type="button"
               onClick={() => setIsDrawerOpen(true)}
-              className="p-1.5 rounded-xl bg-slate-100 dark:bg-slate-800/90 text-slate-700 dark:text-slate-200 border border-slate-200/80 dark:border-slate-700/80 active:scale-95 transition"
+              className="p-1.5 rounded-xl bg-slate-100 dark:bg-slate-800/90 text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-700/80 active:scale-95 transition"
               title="Open Menu"
             >
               <Menu className="w-4 h-4 stroke-[2.5]" />
@@ -173,18 +173,25 @@ export default function Header({
         }`}
       >
         <div>
-          {/* Drawer Top Header */}
-          <div className="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-slate-800">
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-xl bg-brandOrange/15 flex items-center justify-center text-brandOrange">
-                <Sparkles className="w-4 h-4" />
+          {/* Drawer Top Header: Unified Fit Journey Branding */}
+          <div className="flex items-center justify-between pb-4 border-b border-slate-200 dark:border-slate-800">
+            <div className="flex items-center gap-2.5">
+              <div className="w-9 h-9 rounded-xl bg-orange-500/10 dark:bg-orange-500/15 border border-orange-500/25 flex items-center justify-center p-1 shrink-0">
+                <img 
+                  src="/leo.svg" 
+                  alt="Leo Mascot" 
+                  className="w-full h-full object-contain filter drop-shadow-[0_0_8px_rgba(249,115,22,0.4)]" 
+                />
               </div>
               <div>
-                <h3 className="text-sm font-black text-slate-900 dark:text-white">
-                  {isBn ? 'ফিটনেস কন্ট্রোল' : 'Fitness Control'}
+                <h3 className="text-sm font-black tracking-wide text-slate-900 dark:text-white flex items-center">
+                  <span>Fit</span>
+                  <span className="bg-gradient-to-r from-orange-500 via-amber-400 to-orange-400 bg-clip-text text-transparent ml-1">
+                    Journey
+                  </span>
                 </h3>
-                <p className="text-[10px] text-slate-400 font-medium">
-                  {profile?.name ? `${profile.name}` : (isBn ? 'ইউজার প্যানেল' : 'User Panel')}
+                <p className="text-[10.5px] text-slate-500 dark:text-slate-400 font-medium">
+                  {profile?.name ? `${profile.name}` : (isBn ? 'দৈনন্দিন পুষ্টি ও ফিটনেস' : 'Daily Nutrition & Fitness')}
                 </p>
               </div>
             </div>
@@ -210,7 +217,7 @@ export default function Header({
                   className={`w-full flex items-center gap-3 px-3.5 py-3 rounded-2xl text-xs font-bold transition-all text-left ${
                     isActive
                       ? 'bg-orange-500/10 text-brandOrange border border-orange-500/25 shadow-sm'
-                      : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800/60'
+                      : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800/60'
                   }`}
                 >
                   <Icon className={`w-4 h-4 ${isActive ? 'text-brandOrange' : 'text-slate-400'}`} />

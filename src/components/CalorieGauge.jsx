@@ -33,7 +33,7 @@ export default function CalorieGauge({ consumed = 0, target = 2400, lang = 'bn' 
           stroke="currentColor"
           strokeWidth={strokeWidth}
           strokeLinecap="round"
-          className="text-slate-200/80 dark:text-slate-800"
+          className="text-slate-200 dark:text-slate-800"
         />
 
         {/* Dynamic Progress Arc */}
@@ -51,18 +51,18 @@ export default function CalorieGauge({ consumed = 0, target = 2400, lang = 'bn' 
 
       {/* Anchored to Bottom: Ample Breathing Room from Arc Apex */}
       <div className="absolute inset-x-0 bottom-2 flex flex-col items-center justify-end text-center pointer-events-none">
-        <span className="text-[10px] font-bold text-slate-400 dark:text-slate-400 tracking-wider uppercase mb-1">
+        <span className="text-[10px] font-extrabold text-slate-500 dark:text-slate-400 tracking-wider uppercase mb-1">
           {txt.dailyProgressTitle}
         </span>
         <div className="flex items-baseline gap-1.5">
           <span className="text-3xl sm:text-4xl font-black tracking-tight text-slate-900 dark:text-white">
             {consumed}
           </span>
-          <span className="text-xs font-semibold text-slate-400">
+          <span className="text-xs font-bold text-slate-600 dark:text-slate-400">
             / {target} kcal
           </span>
         </div>
-        <span className="text-xs font-extrabold text-brandOrange mt-1">
+        <span className="text-xs font-black text-orange-600 dark:text-brandOrange mt-1">
           {percentage}% {txt.complete}
         </span>
       </div>
