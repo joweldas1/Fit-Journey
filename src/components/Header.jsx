@@ -78,7 +78,7 @@ export default function Header({
                 <img 
                   src="/leo.svg" 
                   alt="Leo Mascot" 
-                  className="w-full h-full object-cover object-top scale-110" 
+                  className="w-full h-full object-contain" 
                 />
               </div>
               {/* Online status indicator */}
@@ -90,10 +90,10 @@ export default function Header({
 
             {/* Glowing Brand Typography & Target */}
             <div className="min-w-0 flex-1">
-              <div className="flex items-center gap-1.5 flex-wrap">
-                <h1 className="text-base sm:text-lg font-black tracking-tight leading-none flex items-center gap-1">
+              <div className="flex items-center gap-2 flex-wrap">
+                <h1 className="text-base sm:text-lg font-black tracking-wide leading-none flex items-center">
                   <span className="text-slate-900 dark:text-white">Fit</span>
-                  <span className="bg-gradient-to-r from-orange-500 via-amber-400 to-orange-400 bg-clip-text text-transparent drop-shadow-[0_0_12px_rgba(249,115,22,0.45)]">
+                  <span className="bg-gradient-to-r from-orange-500 via-amber-400 to-orange-400 bg-clip-text text-transparent drop-shadow-[0_0_12px_rgba(249,115,22,0.45)] ml-1.5">
                     Journey
                   </span>
                 </h1>

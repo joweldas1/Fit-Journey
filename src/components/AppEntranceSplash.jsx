@@ -2,8 +2,10 @@ import React, { useEffect, useState } from 'react';
 import { Sparkles } from 'lucide-react';
 
 /**
- * AppEntranceSplash — Smooth Mobile & Desktop Entrance Animation
- * Eliminates blank screens on launch, displays glowing Leo mascot and Fit Journey brand.
+ * AppEntranceSplash — Ultra-Clean Transparent Entrance Experience
+ * - Transparent floating Leo mascot (no box, no black background)
+ * - Removed green dot radar
+ * - Spacious, elegant typography for "Fit Journey" & subtitle
  */
 export default function AppEntranceSplash({ onComplete, lang = 'bn' }) {
   const [stage, setStage] = useState('entering'); // 'entering' -> 'active' -> 'exiting' -> 'done'
@@ -14,16 +16,16 @@ export default function AppEntranceSplash({ onComplete, lang = 'bn' }) {
       setStage('active');
     }, 50);
 
-    // Stage 2: Start smooth fade out after 1.4s
+    // Stage 2: Start smooth fade out after 1.5s
     const t2 = setTimeout(() => {
       setStage('exiting');
-    }, 1400);
+    }, 1500);
 
-    // Stage 3: Complete and unmount after 1.8s
+    // Stage 3: Complete and unmount after 1.9s
     const t3 = setTimeout(() => {
       setStage('done');
       if (onComplete) onComplete();
-    }, 1800);
+    }, 1900);
 
     return () => {
       clearTimeout(t1);
@@ -46,49 +48,45 @@ export default function AppEntranceSplash({ onComplete, lang = 'bn' }) {
         stage === 'exiting' ? 'opacity-0 pointer-events-none' : 'opacity-100'
       }`}
     >
-      {/* Ambient Radial Neon Background */}
-      <div className="absolute w-72 h-72 sm:w-96 sm:h-96 rounded-full bg-orange-500/15 blur-3xl pointer-events-none animate-pulse" />
-      <div className="absolute w-60 h-60 rounded-full bg-amber-500/10 blur-2xl pointer-events-none" />
+      {/* Ambient Radial Neon Atmosphere */}
+      <div className="absolute w-80 h-80 sm:w-[420px] sm:h-[420px] rounded-full bg-orange-500/20 blur-3xl pointer-events-none animate-pulse" />
+      <div className="absolute w-64 h-64 rounded-full bg-amber-500/15 blur-2xl pointer-events-none" />
 
-      <div className="relative z-10 flex flex-col items-center text-center px-6">
-        {/* Leo Animated Mascot Container */}
-        <div className="relative mb-5">
-          <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-3xl p-1 bg-gradient-to-b from-[#1F1F2E] to-[#09090B] border border-orange-500/50 shadow-[0_0_35px_rgba(249,115,22,0.45)] flex items-center justify-center animate-bounce duration-1000">
+      <div className="relative z-10 flex flex-col items-center text-center px-6 max-w-sm mx-auto">
+        
+        {/* Transparent Floating Leo Mascot (No Box Background, No Green Dot) */}
+        <div className="relative mb-7 sm:mb-8 flex items-center justify-center">
+          <div className="w-28 h-28 sm:w-36 sm:h-36 flex items-center justify-center animate-float-gentle drop-shadow-[0_12px_30px_rgba(249,115,22,0.5)]">
             <img
               src="/leo.svg"
               alt="Leo Mascot"
-              className="w-full h-full object-cover object-top scale-110"
+              className="w-full h-full object-contain filter drop-shadow-[0_4px_16px_rgba(0,0,0,0.6)]"
             />
           </div>
-          
-          {/* Glowing Ping Radar */}
-          <span className="absolute -bottom-1 -right-1 flex h-4 w-4">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-            <span className="relative inline-flex rounded-full h-4 w-4 bg-emerald-500 border-2 border-[#09090B]" />
-          </span>
         </div>
 
-        {/* Brand Name Typography with Glow */}
-        <div className="flex items-center gap-1.5 justify-center mb-2">
-          <h1 className="text-3xl sm:text-4xl font-black tracking-tight leading-none">
+        {/* Brand Name Typography with Generous Spacing */}
+        <div className="flex items-center justify-center gap-2 mb-3">
+          <h1 className="text-3xl sm:text-4xl font-black tracking-wider leading-none flex items-center">
             <span className="text-white">Fit</span>
-            <span className="bg-gradient-to-r from-orange-500 via-amber-400 to-orange-400 bg-clip-text text-transparent drop-shadow-[0_0_18px_rgba(249,115,22,0.6)] ml-1">
+            <span className="bg-gradient-to-r from-orange-500 via-amber-400 to-orange-400 bg-clip-text text-transparent drop-shadow-[0_0_18px_rgba(249,115,22,0.65)] ml-2.5">
               Journey
             </span>
           </h1>
-          <Sparkles className="w-5 h-5 text-amber-400 animate-spin" style={{ animationDuration: '4s' }} />
+          <Sparkles className="w-5 h-5 text-amber-400 animate-spin ml-1" style={{ animationDuration: '4s' }} />
         </div>
 
-        {/* Subtitle */}
-        <p className="text-xs sm:text-sm font-semibold text-slate-400 tracking-wide">
+        {/* Subtitle with Breathing Room */}
+        <p className="text-xs sm:text-sm font-medium text-slate-400/90 tracking-widest mt-1.5 sm:mt-2 leading-relaxed">
           {isBn ? 'স্মার্ট ক্যালোরি ও ফিটনেস ব্লুপ্রিন্ট' : 'Smart Calorie & Fitness Blueprint'}
         </p>
 
-        {/* Mini Pulsing Loading Pill */}
-        <div className="mt-8 flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-[11px] font-bold text-orange-400">
-          <span className="w-1.5 h-1.5 rounded-full bg-orange-500 animate-ping" />
-          <span>{isBn ? 'শুরু হচ্ছে...' : 'Ready...'}</span>
+        {/* Status Pill with Clean Spacing */}
+        <div className="mt-9 sm:mt-10 flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/5 border border-white/10 text-xs font-semibold text-orange-400/90 shadow-sm">
+          <span className="w-2 h-2 rounded-full bg-orange-500 animate-ping" />
+          <span className="tracking-wide">{isBn ? 'শুরু হচ্ছে...' : 'Ready...'}</span>
         </div>
+
       </div>
     </div>
   );

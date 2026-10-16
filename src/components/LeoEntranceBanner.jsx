@@ -104,7 +104,7 @@ export default function LeoEntranceBanner({
               <img
                 src="/leo.svg"
                 alt="Leo Mascot"
-                className="w-full h-full object-cover object-top animate-float-gentle scale-110"
+                className="w-full h-full object-contain animate-float-gentle"
               />
             </div>
 
