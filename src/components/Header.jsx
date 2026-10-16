@@ -122,11 +122,6 @@ export default function Header({
                 <img src="/leo.svg" alt="Leo" className="w-full h-full object-contain" />
               </div>
               <span className="text-[11px] font-extrabold pr-0.5 hidden xs:inline">Leo</span>
-              {/* Very tiny delicate status dot */}
-              <span className="absolute top-1 right-1 flex h-1.5 w-1.5">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-                <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500" />
-              </span>
             </button>
 
             {/* Language Switcher */}
